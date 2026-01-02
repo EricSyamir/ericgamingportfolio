@@ -682,36 +682,7 @@ k.scene("main", async () => {
     }
   });
 
-  // Mobile: tap near interactive objects to interact
-  k.onTouchEnd(() => {
-    if (player.isInDialogue || wasDialogueJustClosed()) return;
-    
-    // Check if dialogue UI is visible
-    const dialogueUI = document.getElementById("textbox-container");
-    if (dialogueUI && dialogueUI.style.display === "block") return;
-    
-    if (nearbyInteractive && dialogueData[nearbyInteractive]) {
-      // Special case: projects should open the project menu
-      if (nearbyInteractive === "projects") {
-        soundManager.playInteract();
-        showProjectsMenu();
-        return;
-      }
-      
-      player.isInDialogue = true;
-      showInteractionPrompt(false);
-      
-      // Play interaction sound
-      soundManager.playInteract();
-      
-      displayDialogue(
-        dialogueData[nearbyInteractive],
-        () => {
-          player.isInDialogue = false;
-        }
-      );
-    }
-  });
+  // Mobile tap interaction removed - use mobile action button instead
 
   function stopAnims() {
     if (player.direction === "down") {
