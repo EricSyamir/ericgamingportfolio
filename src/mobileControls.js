@@ -22,7 +22,7 @@ export function setupMobileControls(player, k, getIsInCombatZone, getNearbyInter
       mobileActionBtn.style.borderColor = '#fff';
       mobileActionBtn.style.boxShadow = '0 4px 20px rgba(255, 71, 87, 0.5)';
     } else if (nearby && dialogueData[nearby]) {
-      mobileActionBtn.innerHTML = '<span>E<br>INTERACT</span>';
+      mobileActionBtn.innerHTML = '<span>E</span>';
       mobileActionBtn.style.background = 'rgba(102, 126, 234, 0.9)';
       mobileActionBtn.style.borderColor = 'var(--primary)';
       mobileActionBtn.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.5)';
