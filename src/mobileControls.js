@@ -2,7 +2,7 @@
 import { COMBAT_CONFIG } from "./combat";
 import { playerScale, scaleFactor } from "./constants";
 import { dialogueData } from "./constants";
-import { displayDialogue } from "./utils";
+import { displayDialogue, wasDialogueJustClosed } from "./utils";
 import { soundManager } from "./sounds";
 import { showProjectsMenu } from "./projectMenu";
 
