@@ -1058,35 +1058,6 @@
       }
     }
 
-    /* Mobile Touch Hint */
-    .mobile-hint {
-      display: none;
-      position: fixed;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--bg-card);
-      padding: 8px 16px;
-      border-radius: 16px;
-      border: 2px solid var(--primary);
-      font-family: var(--pixel-font);
-      font-size: 5px;
-      color: var(--text-muted);
-      z-index: 50;
-      animation: bounce 2s infinite;
-      line-height: 1.8;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-5px); }
-    }
-
-    @media (max-width: 900px) {
-      .mobile-hint {
-        display: block;
-      }
-    }
 
     /* Loading Screen */
     .loading-screen {

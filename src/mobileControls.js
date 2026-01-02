@@ -17,7 +17,7 @@ export function setupMobileControls(player, k, getIsInCombatZone, getNearbyInter
     const nearby = getNearbyInteractive();
     
     if (isInCombat) {
-      mobileActionBtn.innerHTML = '<span>F<br>ATTACK</span>';
+      mobileActionBtn.innerHTML = '<span>F</span>';
       mobileActionBtn.style.background = 'rgba(255, 71, 87, 0.9)';
       mobileActionBtn.style.borderColor = '#fff';
       mobileActionBtn.style.boxShadow = '0 4px 20px rgba(255, 71, 87, 0.5)';
@@ -27,7 +27,7 @@ export function setupMobileControls(player, k, getIsInCombatZone, getNearbyInter
       mobileActionBtn.style.borderColor = 'var(--primary)';
       mobileActionBtn.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.5)';
     } else {
-      mobileActionBtn.innerHTML = '<span>F<br>ATTACK</span>';
+      mobileActionBtn.innerHTML = '<span>F</span>';
       mobileActionBtn.style.background = 'rgba(255, 71, 87, 0.9)';
       mobileActionBtn.style.borderColor = '#fff';
       mobileActionBtn.style.boxShadow = '0 4px 20px rgba(255, 71, 87, 0.5)';
