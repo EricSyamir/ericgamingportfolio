@@ -247,9 +247,14 @@ k.scene("main", async () => {
       const barWidth = 200;
       const barHeight = 20;
       const spacing = 10; // Space between score and health bar
+      
+      // Adjust bottom offset for mobile (to avoid mobile button area)
+      const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      const bottomOffset = isMobile ? 120 : 20; // More space on mobile for button
+      
       // Position at bottom-right corner (score above health bar)
       const barX = k.width() - barWidth - 20;
-      const barY = k.height() - barHeight - 20; // Health bar at bottom
+      const barY = k.height() - barHeight - bottomOffset; // Health bar at bottom with mobile offset
       const scoreY = barY - scoreHeight - spacing; // Score above health bar
       
       // Draw score background (styled like controls UI) - aligned with health bar
