@@ -5,7 +5,7 @@ import { soundManager } from "./sounds";
 import { getSelectedCharacter } from "./characters";
 import { PlayerCombat, EnemySpawner, COMBAT_CONFIG } from "./combat";
 import { showProjectsMenu } from "./projectMenu";
-import { setupJoystick } from "./joystick";
+import { setupMobileControls } from "./mobileControls";
 
 // Get the selected character
 const selectedChar = getSelectedCharacter();
@@ -184,6 +184,14 @@ k.scene("main", async () => {
       player.combat.addScore(points);
     }
   });
+  
+  // Setup mobile controls (action button for attack/interact)
+  setupMobileControls(
+    player, 
+    k, 
+    () => isInCombatZone,
+    () => nearbyInteractive
+  );
 
   // Check proximity to interactive objects
   k.onUpdate(() => {
