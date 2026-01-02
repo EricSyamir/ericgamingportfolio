@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Eric Syamir - Interactive Game Portfolio | Computer Science Student specializing in AI, Data Analytics, and Software Engineering">
+  <title>Eric Syamir | Game Portfolio</title>
+  <link rel="icon" type="image/png" href="Portfolio/fav.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: monogram;
+      src: url(public/monogram.ttf);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #667eea;
+      --secondary: #764ba2;
+      --accent: #f093fb;
+      --bg-dark: #0f0f1a;
+      --bg-card: rgba(15, 15, 26, 0.95);
+      --text-light: #e0e0e0;
+      --text-muted: #a0a0a0;
+      --gold: #ffd700;
+      --pixel-font: 'Press Start 2P', cursive;
+    }
+
+    body {
+      font-family: var(--pixel-font);
+      background: var(--bg-dark);
+      overflow: hidden;
+      min-height: 100vh;
+      color: var(--text-light);
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+
+    /* Animated Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(240, 147, 251, 0.05) 0%, transparent 70%);
+      z-index: -1;
+    }
+
+    /* Floating Particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(102, 126, 234, 0.6);
+      border-radius: 50%;
+      animation: floatParticle 15s infinite linear;
+    }
+
+    .particle:nth-child(2n) { background: rgba(118, 75, 162, 0.6); }
+    .particle:nth-child(3n) { background: rgba(240, 147, 251, 0.4); }
+
+    @keyframes floatParticle {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Main App Container */
+    #app {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .game-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(15, 15, 26, 0.98) 0%, rgba(15, 15, 26, 0.8) 100%);
+      backdrop-filter: blur(20px);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 8px;
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      animation: logoGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes logoGlow {
+      from { box-shadow: 0 0 10px rgba(102, 126, 234, 0.5); }
+      to { box-shadow: 0 0 25px rgba(102, 126, 234, 0.8); }
+    }
+
+    .logo-text {
+      font-family: var(--pixel-font);
+      font-size: 10px;
+      background: linear-gradient(90deg, var(--gold), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.4;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .header-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: var(--pixel-font);
+      font-size: 7px;
+      transition: all 0.3s;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      line-height: 1.4;
+    }
+
+    .header-link:hover {
+      color: var(--text-light);
+      background: rgba(102, 126, 234, 0.2);
+      border-color: var(--primary);
+    }
+
+    .header-link.primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: 2px solid #fff;
+    }
+
+    .header-link.help-btn {
+      background: var(--gold);
+      color: #000;
+      border: 2px solid #fff;
+      font-weight: bold;
+    }
+
+    /* Game Canvas Area */
+    #game {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+
+    /* Instructions Panel */
+    .instructions {
+      position: fixed;
+      left: 20px;
+      top: 80px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: 12px;
+      padding: 16px;
+      border: 3px solid var(--gold);
+      z-index: 50;
+      max-width: 220px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .instructions.collapsed {
+      padding: 8px;
+      max-width: 50px;
+    }
+    
+    .instructions.collapsed #controls-content {
+      display: none;
+    }
+    
+    .toggle-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--gold);
+      border: 2px solid #000;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      font-family: var(--pixel-font);
+      font-size: 16px;
+      color: #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 51;
+    }
+    
+    .toggle-btn:hover {
+      background: #ffed4e;
+      transform: scale(1.1);
+    }
+
+    .instructions h3 {
+      font-family: var(--pixel-font);
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .instructions p {
+      font-family: var(--pixel-font);
+      font-size: 6px;
+      color: var(--text-muted);
+      line-height: 2;
+      margin-bottom: 6px;
+    }
+
+    .control-keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .key {
+      background: rgba(102, 126, 234, 0.3);
+      border: 2px solid var(--primary);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-family: var(--pixel-font);
+      font-size: 7px;
+      color: var(--text-light);
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .key.highlight {
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+      border-color: #fff;
+      animation: keyPulse 1s infinite;
+    }
+
+    @keyframes keyPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Profile Card */
+    .profile-card {
+      position: fixed;
+      right: 20px;
+      top: 80px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: 12px;
+      padding: 16px;
+      border: 3px solid var(--gold);
+      z-index: 50;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      max-width: 200px;
+    }
+
+    .profile-image {
+      width: 70px;
+      height: 70px;
+      border-radius: 8px;
+      margin: 0 auto 10px;
+      border: 3px solid var(--gold);
+      overflow: hidden;
+    }
+
+    .profile-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-card h2 {
+      font-family: var(--pixel-font);
+      font-size: 6px;
+      margin-bottom: 6px;
+      color: var(--gold);
+      line-height: 1.6;
+    }
+
+    .profile-card .role {
+      font-family: var(--pixel-font);
+      font-size: 5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      line-height: 1.8;
+    }
+
+    .profile-card .scholarship {
+      font-family: var(--pixel-font);
+      font-size: 5px;
+      color: var(--accent);
+      margin-bottom: 10px;
+      line-height: 1.8;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .social-link {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(102, 126, 234, 0.2);
+      border: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 12px;
+      transition: all 0.3s;
+    }
+
+    .social-link:hover {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      transform: translateY(-3px);
+    }
+
+    /* Health Bar */
+    #health-bar-container {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 3px solid var(--gold);
+      border-radius: 8px;
+      padding: 10px 15px;
+      z-index: 150;
+      min-width: 200px;
+    }
+
+    #health-bar-label {
+      font-family: var(--pixel-font);
+      font-size: 10px;
+      color: var(--gold);
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #health-text {
+      font-size: 9px;
+      color: var(--text-light);
+    }
+
+    #health-bar-bg {
+      width: 100%;
+      height: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #health-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4ade80, #22c55e);
+      transition: width 0.3s ease, background 0.3s ease;
+      border-radius: 2px;
+    }
+
+    /* Combat Alert */
+    #combat-alert {
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(220, 38, 38, 0.95);
+      border: 3px solid #fff;
+      border-radius: 8px;
+      padding: 15px 30px;
+      font-family: var(--pixel-font);
+      font-size: 12px;
+      color: white;
+      display: none;
+      z-index: 200;
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6);
+      animation: pulseGlow 1s ease-in-out infinite;
+      text-align: center;
+    }
+
+    /* Interaction Prompt - Press E */
+    #interaction-prompt {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--gold), #ffed4e);
+      color: #000;
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 4px solid #000;
+      font-family: var(--pixel-font);
+      font-size: 8px;
+      z-index: 150;
+      display: none;
+      animation: pulseGlow 1.2s infinite;
+      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    #interaction-prompt .key-e {
+      background: #ff4757;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 3px solid #000;
+      margin: 0 4px;
+      display: inline-block;
+      box-shadow: 0 3px 0 #c92a2a;
+    }
+
+    #interaction-text {
+      display: block;
+      margin-top: 6px;
+      font-size: 10px;
+      color: #333;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        transform: translateX(-50%) scale(1);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+      }
+      50% {
+        transform: translateX(-50%) scale(1.03);
+        box-shadow: 0 12px 35px rgba(255, 215, 0, 0.8);
+      }
+    }
+
+    /* Dialogue Box */
+    #textbox-container {
+      position: fixed;
+      left: 3%;
+      right: 3%;
+      bottom: 20px;
+      z-index: 200;
+      display: none;
+    }
+
+    #textbox {
+      background: var(--bg-card);
+      backdrop-filter: blur(30px);
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 4px solid var(--gold);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      max-height: 200px;
+      overflow: hidden;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #dialogue {
+      font-family: var(--pixel-font);
+      font-size: 11px;
+      line-height: 2.2;
+      color: var(--text-light);
+      overflow-y: auto;
+      flex: 1;
+      padding: 0;
+      margin: 0;
+    }
+
+    .dialogue-line {
+      margin: 2px 0;
+      animation: fadeInLine 0.3s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeInLine {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .btn-container {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .ui-close-btn {
+      font-family: var(--pixel-font);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: 3px solid #fff;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 0 #2c3e50;
+      line-height: 1.6;
+    }
+
+    .ui-close-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #2c3e50;
+    }
+
+    /* Character Selection Modal */
+    .char-select-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .char-select-modal.hidden {
+      display: none;
+    }
+
+    .char-select-content {
+      background: var(--bg-card);
+      border: 4px solid var(--gold);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+    }
+
+    .char-select-content h1 {
+      font-family: var(--pixel-font);
+      font-size: 20px;
+      color: var(--gold);
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .char-select-content p {
+      font-family: var(--pixel-font);
+      font-size: 10px;
+      color: var(--text-light);
+      margin-bottom: 25px;
+      line-height: 1.8;
+    }
+
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .char-option {
+      background: rgba(255, 255, 255, 0.05);
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .char-option:hover {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.1);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    }
+
+    .char-option.selected {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.15);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    .char-option.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 5px;
+      right: 8px;
+      font-size: 16px;
+      color: var(--gold);
+    }
+
+    .char-preview {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 10px;
+      image-rendering: pixelated;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .char-preview canvas {
+      transform: scale(4);
+      image-rendering: pixelated;
+    }
+
+    .char-name {
+      font-family: var(--pixel-font);
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .char-color {
+      font-family: var(--pixel-font);
+      font-size: 9px;
+      color: var(--text-light);
+      margin-bottom: 5px;
+    }
+
+    .char-desc {
+      font-family: var(--pixel-font);
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+    }
+
+    .char-select-btn {
+      font-family: var(--pixel-font);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: 3px solid var(--gold);
+      border-radius: 8px;
+      padding: 12px 30px;
+      font-size: 11px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 0 #2c3e50;
+      margin: 5px;
+    }
+
+    .char-select-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #2c3e50;
+    }
+
+    .char-select-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 0 #2c3e50;
+    }
+
+    /* Tutorial Modal */
+    .tutorial-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tutorial-modal.hidden {
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .tutorial-content {
+      background: var(--bg-card);
+      border: 4px solid var(--gold);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      max-height: 85vh;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tutorial-pages {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tutorial-page {
+      min-width: 100%;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tutorial-page.active {
+      display: block;
+    }
+
+    .tutorial-content h1 {
+      font-family: var(--pixel-font);
+      font-size: 14px;
+      color: var(--gold);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .tutorial-section {
+      background: rgba(102, 126, 234, 0.1);
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: left;
+    }
+
+    .tutorial-page .tutorial-section {
+      text-align: center;
+    }
+
+    .tutorial-page .tutorial-section h2,
+    .tutorial-page .tutorial-section p {
+      text-align: center;
+    }
+
+    .tutorial-section h2 {
+      font-family: var(--pixel-font);
+      font-size: 9px;
+      color: var(--accent);
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .tutorial-section p {
+      font-family: var(--pixel-font);
+      font-size: 7px;
+      color: var(--text-muted);
+      line-height: 2;
+      margin-bottom: 6px;
+    }
+
+    .tutorial-keys {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+    }
+
+    .tutorial-key {
+      background: rgba(102, 126, 234, 0.3);
+      border: 2px solid var(--primary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: var(--pixel-font);
+      font-size: 10px;
+      color: var(--text-light);
+    }
+
+    .tutorial-key.special {
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+      border-color: #fff;
+    }
+
+    .tutorial-locations {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tutorial-location {
+      font-family: var(--pixel-font);
+      font-size: 6px;
+      color: var(--text-light);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px;
+      border-radius: 6px;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .tutorial-navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
+    .tutorial-nav-btn {
+      font-family: var(--pixel-font);
+      background: rgba(102, 126, 234, 0.3);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 9px;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.3s;
+      flex: 1;
+      max-width: 120px;
+    }
+
+    .tutorial-nav-btn:hover:not(:disabled) {
+      background: rgba(102, 126, 234, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .tutorial-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .tutorial-page-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .tutorial-page-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(102, 126, 234, 0.3);
+      border: 2px solid var(--primary);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tutorial-page-dot.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      transform: scale(1.2);
+    }
+
+    .start-btn {
+      font-family: var(--pixel-font);
+      background: linear-gradient(135deg, var(--gold), #ffed4e);
+      border: 3px solid #000;
+      border-radius: 10px;
+      padding: 14px 30px;
+      font-size: 10px;
+      color: #000;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 0 #b8860b;
+      width: 100%;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #b8860b;
+    }
+
+    .start-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #b8860b;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 900px) {
+      .instructions, .profile-card {
+        display: none;
+      }
+
+      .game-header {
+        padding: 10px 12px;
+      }
+
+      .logo-text {
+        font-size: 8px;
+      }
+
+      #textbox {
+        padding: 16px;
+      }
+
+      #dialogue {
+        font-size: 9px;
+      }
+
+      .tutorial-content {
+        margin: 20px;
+        padding: 20px;
+      }
+
+      .tutorial-content h1 {
+        font-size: 11px;
+      }
+
+      .tutorial-locations {
+        grid-template-columns: 1fr;
+      }
+
+      .tutorial-navigation {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .tutorial-nav-btn {
+        max-width: none;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header-link:not(.primary):not(.help-btn) {
+        display: none;
+      }
+
+      .logo-text {
+        font-size: 7px;
+      }
+
+      #textbox-container {
+        left: 2%;
+        right: 2%;
+        bottom: 10px;
+      }
+
+      #textbox {
+        padding: 12px 16px;
+      }
+
+      #dialogue {
+        font-size: 8px;
+      }
+
+      #interaction-prompt {
+        font-size: 7px;
+        padding: 10px 16px;
+        bottom: 90px;
+      }
+
+      #interaction-text {
+        font-size: 8px;
+      }
+    }
+
+    /* Virtual Joystick */
+    .joystick-container {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: 120px;
+      height: 120px;
+      z-index: 100;
+      display: none; /* Hidden by default, shown on touch devices */
+      touch-action: none;
+    }
+
+    .joystick-base {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(15, 15, 26, 0.8);
+      border: 4px solid var(--gold);
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .joystick-handle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(102, 126, 234, 0.9);
+      border: 3px solid var(--primary);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease-out;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .joystick-handle.active {
+      background: rgba(102, 126, 234, 1);
+      border-color: var(--accent);
+    }
+
+    /* Mobile Attack Button */
+    .mobile-attack-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 71, 87, 0.9);
+      border: 4px solid #fff;
+      color: white;
+      font-family: var(--pixel-font);
+      font-size: 12px;
+      display: none; /* Hidden by default, shown on touch devices */
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100;
+      touch-action: none;
+      user-select: none;
+      box-shadow: 0 4px 20px rgba(255, 71, 87, 0.5);
+      transition: all 0.1s;
+    }
+
+    .mobile-attack-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 71, 87, 1);
+    }
+
+    .mobile-attack-btn span {
+      display: block;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* Show joystick on touch devices */
+    @media (hover: none) and (pointer: coarse) {
+      .joystick-container {
+        display: block;
+      }
+      .mobile-attack-btn {
+        display: flex;
+      }
+    }
+
+    /* Mobile Touch Hint */
+    .mobile-hint {
+      display: none;
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 16px;
+      border: 2px solid var(--primary);
+      font-family: var(--pixel-font);
+      font-size: 5px;
+      color: var(--text-muted);
+      z-index: 50;
+      animation: bounce 2s infinite;
+      line-height: 1.8;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    @media (max-width: 900px) {
+      .mobile-hint {
+        display: block;
+      }
+    }
+
+    /* Loading Screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loading-logo {
+      font-family: var(--pixel-font);
+      font-size: 14px;
+      background: linear-gradient(90deg, var(--gold), var(--accent), var(--primary));
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientMove 2s linear infinite;
+      margin-bottom: 30px;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .loading-bar-container {
+      width: 180px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      border: 2px solid var(--gold);
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 4px;
+      width: 0%;
+      animation: loadProgress 2s ease-out forwards;
+    }
+
+    @keyframes loadProgress {
+      0% { width: 0%; }
+      50% { width: 70%; }
+      100% { width: 100%; }
+    }
+
+    .loading-text {
+      margin-top: 20px;
+      font-family: var(--pixel-font);
+      font-size: 7px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      line-height: 1.6;
+    }
+
+    /* ===== PROJECTS MODAL STYLES ===== */
+    .projects-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .projects-modal-content {
+      background: var(--bg-card);
+      border: 3px solid var(--primary);
+      border-radius: 8px;
+      width: 90%;
+      max-width: 1200px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 30px;
+      box-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+      animation: scaleIn 0.3s ease;
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .projects-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 20px;
+    }
+
+    .projects-header h2 {
+      font-size: 20px;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .projects-close {
+      background: #ff4444;
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--pixel-font);
+    }
+
+    .projects-close:hover {
+      background: #ff6666;
+      transform: scale(1.1);
+    }
+
+    .projects-filter {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .filter-btn {
+      background: rgba(102, 126, 234, 0.2);
+      color: var(--text-light);
+      border: 2px solid var(--primary);
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: var(--pixel-font);
+      font-size: 10px;
+    }
+
+    .filter-btn:hover {
+      background: rgba(102, 126, 234, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .project-card {
+      background: rgba(15, 15, 26, 0.8);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      border-color: var(--accent);
+    }
+
+    .project-card h3 {
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .project-card p {
+      font-size: 8px;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .project-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .project-tech-tag {
+      background: rgba(102, 126, 234, 0.3);
+      color: var(--text-light);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 7px;
+      border: 1px solid var(--primary);
+    }
+
+    .project-category {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--secondary);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 7px;
+    }
+
+    /* Project Detail Modal */
+    .project-detail-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .project-detail-content {
+      background: var(--bg-card);
+      border: 3px solid var(--primary);
+      border-radius: 8px;
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 40px;
+      box-shadow: 0 0 60px rgba(102, 126, 234, 0.6);
+      position: relative;
+    }
+
+    .project-detail-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--pixel-font);
+      z-index: 10;
+    }
+
+    .project-detail-close:hover {
+      background: #ff6666;
+      transform: scale(1.1) rotate(90deg);
+    }
+
+    .project-detail-title {
+      font-size: 20px;
+      color: var(--gold);
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .project-detail-video {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 2px solid var(--primary);
+    }
+
+    .project-detail-desc {
+      font-size: 10px;
+      color: var(--text-light);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .project-detail-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .project-detail-tech-tag {
+      background: var(--primary);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 4px;
+      font-size: 9px;
+    }
+
+    .project-detail-link {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--bg-dark);
+      padding: 15px 30px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 10px;
+      transition: all 0.3s;
+      border: 2px solid var(--gold);
+    }
+
+    .project-detail-link:hover {
+      background: transparent;
+      color: var(--gold);
+      transform: scale(1.05);
+    }
+
+    /* Scrollbar Styling */
+    .projects-modal-content::-webkit-scrollbar,
+    .project-detail-content::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .projects-modal-content::-webkit-scrollbar-track,
+    .project-detail-content::-webkit-scrollbar-track {
+      background: rgba(15, 15, 26, 0.5);
+    }
+
+    .projects-modal-content::-webkit-scrollbar-thumb,
+    .project-detail-content::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 5px;
+    }
+
+    .projects-modal-content::-webkit-scrollbar-thumb:hover,
+    .project-detail-content::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* Respawn/Death Modal */
+    .respawn-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10002;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .respawn-modal.hidden {
+      display: none;
+    }
+
+    .respawn-modal-content {
+      background: var(--bg-card);
+      border: 4px solid #ff4444;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(255, 68, 68, 0.5);
+      max-width: 400px;
+      animation: scaleIn 0.3s ease;
+    }
+
+    .respawn-modal-content h1 {
+      font-family: var(--pixel-font);
+      font-size: 24px;
+      color: #ff4444;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .respawn-modal-content p {
+      font-family: var(--pixel-font);
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+
+    .score-display {
+      margin-bottom: 20px;
+    }
+
+    .final-score {
+      font-family: var(--pixel-font);
+      font-size: 14px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+
+    .final-score span {
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .name-input-container {
+      margin-bottom: 25px;
+    }
+
+    .name-input-container label {
+      font-family: var(--pixel-font);
+      font-size: 10px;
+      color: var(--text-light);
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .name-input {
+      font-family: var(--pixel-font);
+      font-size: 12px;
+      color: var(--text-light);
+      background: rgba(102, 126, 234, 0.2);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px 16px;
+      width: 100%;
+      max-width: 300px;
+      text-align: center;
+      outline: none;
+    }
+
+    .name-input:focus {
+      border-color: var(--gold);
+      background: rgba(102, 126, 234, 0.3);
+    }
+
+    .name-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .respawn-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .respawn-btn {
+      font-family: var(--pixel-font);
+      border: 3px solid #000;
+      border-radius: 10px;
+      padding: 16px 30px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .respawn-btn.primary {
+      background: linear-gradient(135deg, var(--gold), #ffed4e);
+      color: #000;
+      box-shadow: 0 4px 0 #b8860b;
+    }
+
+    .respawn-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #b8860b;
+    }
+
+    .respawn-btn.primary:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #b8860b;
+    }
+
+    .respawn-hint {
+      font-family: var(--pixel-font);
+      font-size: 8px;
+      color: var(--text-muted);
+      margin-top: 15px;
+      margin-bottom: 0;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .projects-header h2 {
+        font-size: 14px;
+      }
+      
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .project-card h3 {
+        font-size: 10px;
+      }
+      
+      .project-detail-title {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-logo">ERIC SYAMIR<br>PORTFOLIO</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar"></div>
+    </div>
+    <p class="loading-text">LOADING GAME...</p>
+  </div>
+
+  <!-- Character Selection Modal -->
+  <div id="char-select-modal" class="char-select-modal hidden">
+    <div class="char-select-content">
+      <h1>🎮 SELECT YOUR CHARACTER</h1>
+      <p>Choose your avatar to explore Eric's portfolio!</p>
+      <div id="char-grid" class="char-grid"></div>
+      <button id="start-game-btn" class="char-select-btn">START ADVENTURE</button>
+      <button id="change-char-later-btn" class="char-select-btn" style="background: rgba(255,255,255,0.1);">SKIP FOR NOW</button>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal -->
+  <div class="tutorial-modal" id="tutorialModal">
+    <div class="tutorial-content">
+      <h1>🎮 WELCOME TO MY PORTFOLIO!</h1>
+      
+      <div class="tutorial-pages">
+        <!-- Page 1: Welcome -->
+        <div class="tutorial-page active">
+          <div class="tutorial-section">
+            <h2>👋 GET STARTED</h2>
+            <p>Welcome to my interactive portfolio game!</p>
+            <p>Explore my achievements, projects, and skills.</p>
+            <p>Use the navigation buttons below to learn more.</p>
+          </div>
+        </div>
+
+        <!-- Page 2: Controls -->
+        <div class="tutorial-page">
+          <div class="tutorial-section">
+            <h2>🕹️ CONTROLS</h2>
+            <p>Use keyboard or mouse to move around:</p>
+            <div class="tutorial-keys">
+              <span class="tutorial-key">W</span>
+              <span class="tutorial-key">A</span>
+              <span class="tutorial-key">S</span>
+              <span class="tutorial-key">D</span>
+            </div>
+            <div class="tutorial-keys">
+              <span class="tutorial-key">↑</span>
+              <span class="tutorial-key">←</span>
+              <span class="tutorial-key">↓</span>
+              <span class="tutorial-key">→</span>
+            </div>
+            <p>Or click/tap anywhere to walk there!</p>
+          </div>
+        </div>
+
+        <!-- Page 3: Interaction -->
+        <div class="tutorial-page">
+          <div class="tutorial-section">
+            <h2>💬 INTERACTION</h2>
+            <p>Walk near objects to see what they are.</p>
+            <p>A prompt will show: "PRESS E TO INTERACT"</p>
+            <div class="tutorial-keys">
+              <span class="tutorial-key special">E</span>
+              <span class="tutorial-key">SPACE</span>
+            </div>
+            <p>Press ENTER or SPACE to advance dialogue or close.</p>
+            <p>🔊 8-bit sound effects play for all interactions!</p>
+          </div>
+        </div>
+
+        <!-- Page 4: Locations -->
+        <div class="tutorial-page">
+          <div class="tutorial-section">
+            <h2>📍 EXPLORE THESE LOCATIONS</h2>
+            <div class="tutorial-locations">
+              <div class="tutorial-location">💻 MY PC<br>Skills</div>
+              <div class="tutorial-location">🎓 CS DEGREE<br>Education</div>
+              <div class="tutorial-location">🛋️ ABOUT ME<br>Personal Info</div>
+              <div class="tutorial-location">📺 AWARDS<br>Achievements</div>
+              <div class="tutorial-location">📋 EXPERIENCE<br>Work History</div>
+              <div class="tutorial-location">📚 SKILLS<br>Certifications</div>
+              <div class="tutorial-location">🚀 PROJECTS<br>Portfolio</div>
+              <div class="tutorial-location">🚪 CONTACT<br>Get in Touch</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-navigation">
+        <button class="tutorial-nav-btn" id="tutorialPrev">← PREV</button>
+        <div class="tutorial-page-indicators" id="tutorialPageIndicators"></div>
+        <button class="tutorial-nav-btn" id="tutorialNext">NEXT →</button>
+      </div>
+
+      <button class="start-btn" id="startGame" style="display: none;">START EXPLORING!</button>
+    </div>
+  </div>
+
+  <!-- Floating Particles -->
+  <div class="particles" id="particles"></div>
+
+  <div id="app">
+    <!-- Header -->
+    <header class="game-header">
+      <div class="logo">
+        <div class="logo-icon">🎮</div>
+        <span class="logo-text">ERIC SYAMIR</span>
+      </div>
+      <nav class="header-links">
+        <a href="https://github.com/ericsyamir" target="_blank" class="header-link">GITHUB</a>
+        <a href="https://www.linkedin.com/in/muhammad-eric-syamir-bin-shamsurizal-463723315" target="_blank" class="header-link">LINKEDIN</a>
+        <a href="Portfolio/index.html" class="header-link">CLASSIC</a>
+        <button class="header-link help-btn" id="helpBtn">?</button>
+        <a href="https://wa.me/60132543999" target="_blank" class="header-link primary">CONTACT</a>
+      </nav>
+    </header>
+
+    <!-- Instructions Panel -->
+    <div class="instructions" id="instructions-panel">
+      <button id="toggle-controls-btn" class="toggle-btn">−</button>
+      <div id="controls-content">
+        <h3>🎮 CONTROLS</h3>
+        <p>WASD or Arrow Keys to move</p>
+        <p>Press E near objects</p>
+        <p>Press F to attack</p>
+        <p>Press R to respawn</p>
+        <p>ENTER/SPACE to advance</p>
+        <p>🔊 Sound effects enabled</p>
+        <p><button id="change-char-btn" class="char-select-btn" style="font-size: 8px; padding: 8px 16px;">Change Character</button></p>
+        <div class="control-keys">
+          <span class="key">W</span>
+          <span class="key">A</span>
+          <span class="key">S</span>
+          <span class="key">D</span>
+          <span class="key highlight">E</span>
+          <span class="key highlight">F</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="profile-card" id="profileCard">
+      <div class="profile-image">
+        <img src="Portfolio/profile-picture.jpg" alt="Eric Syamir">
+      </div>
+      <h2>MUHAMMAD ERIC SYAMIR</h2>
+      <p class="role">CS STUDENT @ UTP</p>
+      <p class="scholarship">🏆 YUTP MARA SCHOLAR</p>
+      <div class="social-links">
+        <a href="https://github.com/ericsyamir" target="_blank" class="social-link">💻</a>
+        <a href="https://www.linkedin.com/in/muhammad-eric-syamir-bin-shamsurizal-463723315" target="_blank" class="social-link">💼</a>
+        <a href="mailto:ericsyamir46@gmail.com" class="social-link">📧</a>
+        <a href="https://wa.me/60132543999" target="_blank" class="social-link">💬</a>
+      </div>
+    </div>
+
+    <!-- Mobile Hint -->
+    <div class="mobile-hint">
+      👆 TAP TO MOVE • TAP NEAR OBJECTS
+    </div>
+
+    <!-- Combat Alert -->
+    <div id="combat-alert">
+      <div id="combat-alert-text">DANGER ZONE</div>
+    </div>
+
+    <!-- Death/Respawn Modal -->
+    <div id="respawnModal" class="respawn-modal hidden">
+      <div class="respawn-modal-content">
+        <h1>💀 YOU DIED</h1>
+        <p>Your health has reached zero!</p>
+        <div class="score-display">
+          <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+        </div>
+        <div class="name-input-container">
+          <label for="playerNameInput">Enter your name:</label>
+          <input type="text" id="playerNameInput" class="name-input" placeholder="Player" maxlength="20">
+        </div>
+        <div class="respawn-buttons">
+          <button id="respawnBtn" class="respawn-btn primary">🔄 RESPAWN</button>
+        </div>
+        <p class="respawn-hint">Press R key to respawn</p>
+      </div>
+    </div>
+
+    <!-- Interaction Prompt -->
+    <div id="interaction-prompt">
+      PRESS <span class="key-e">E</span> TO INTERACT
+      <span id="interaction-text"></span>
+    </div>
+
+    <!-- Dialogue Box -->
+    <div id="textbox-container">
+      <div id="textbox">
+        <div id="dialogue"></div>
+        <div class="btn-container">
+          <button id="close" class="ui-close-btn">NEXT [ENTER/SPACE]</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="game"></canvas>
+  </div>
+
+  <!-- Virtual Joystick -->
+  <div class="joystick-container" id="joystickContainer">
+    <div class="joystick-base">
+      <div class="joystick-handle" id="joystickHandle"></div>
+    </div>
+  </div>
+
+  <!-- Mobile Attack Button -->
+  <button class="mobile-attack-btn" id="mobileAttackBtn">
+    <span>F<br>ATTACK</span>
+  </button>
+
+  <script>
+    // Generate particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 15 + 's';
+      particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+      particlesContainer.appendChild(particle);
+    }
+
+    // Loading screen then show tutorial
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+        // Show tutorial after loading
+        document.getElementById('tutorialModal').classList.remove('hidden');
+      }, 2000);
+    });
+
+    // Tutorial pagination
+    let currentTutorialPage = 0;
+    const tutorialPages = document.querySelectorAll('.tutorial-page');
+    const totalTutorialPages = tutorialPages.length;
+    const tutorialPrevBtn = document.getElementById('tutorialPrev');
+    const tutorialNextBtn = document.getElementById('tutorialNext');
+    const tutorialPageIndicators = document.getElementById('tutorialPageIndicators');
+    const startGameBtn = document.getElementById('startGame');
+
+    // Create page indicators
+    for (let i = 0; i < totalTutorialPages; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'tutorial-page-dot';
+      if (i === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToTutorialPage(i));
+      tutorialPageIndicators.appendChild(dot);
+    }
+
+    function updateTutorialPage() {
+      tutorialPages.forEach((page, index) => {
+        page.classList.toggle('active', index === currentTutorialPage);
+      });
+
+      // Update indicators
+      const dots = tutorialPageIndicators.querySelectorAll('.tutorial-page-dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentTutorialPage);
+      });
+
+      // Update navigation buttons
+      tutorialPrevBtn.disabled = currentTutorialPage === 0;
+      tutorialNextBtn.disabled = currentTutorialPage === totalTutorialPages - 1;
+
+      // Show/hide start button on last page
+      if (currentTutorialPage === totalTutorialPages - 1) {
+        startGameBtn.style.display = 'block';
+        tutorialNextBtn.style.display = 'none';
+      } else {
+        startGameBtn.style.display = 'none';
+        tutorialNextBtn.style.display = 'block';
+      }
+    }
+
+    function goToTutorialPage(page) {
+      currentTutorialPage = page;
+      updateTutorialPage();
+    }
+
+    tutorialPrevBtn.addEventListener('click', () => {
+      if (currentTutorialPage > 0) {
+        currentTutorialPage--;
+        updateTutorialPage();
+      }
+    });
+
+    tutorialNextBtn.addEventListener('click', () => {
+      if (currentTutorialPage < totalTutorialPages - 1) {
+        currentTutorialPage++;
+        updateTutorialPage();
+      }
+    });
+
+    // Start game button
+    startGameBtn.addEventListener('click', () => {
+      document.getElementById('tutorialModal').classList.add('hidden');
+    });
+
+    // Help button to show tutorial again
+    document.getElementById('helpBtn').addEventListener('click', () => {
+      currentTutorialPage = 0;
+      updateTutorialPage();
+      document.getElementById('tutorialModal').classList.remove('hidden');
+    });
+
+    // Close tutorial on click outside
+    document.getElementById('tutorialModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('tutorialModal')) {
+        document.getElementById('tutorialModal').classList.add('hidden');
+      }
+    });
+
+    // Initialize tutorial page
+    updateTutorialPage();
+  </script>
+  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/characterSelect.js"></script>
+  <script>
+    // Toggle controls panel
+    const toggleBtn = document.getElementById('toggle-controls-btn');
+    const instructionsPanel = document.getElementById('instructions-panel');
+    
+    if (toggleBtn && instructionsPanel) {
+      toggleBtn.addEventListener('click', () => {
+        instructionsPanel.classList.toggle('collapsed');
+        toggleBtn.textContent = instructionsPanel.classList.contains('collapsed') ? '+' : '−';
+      });
+    }
+  </script>
+
+  <!-- Projects Menu Modal -->
+  <div id="projectsModal" class="projects-modal" style="display: none;">
+    <div class="projects-modal-content">
+      <div class="projects-header">
+        <h2>🚀 MY PORTFOLIO PROJECTS</h2>
+        <button class="projects-close" id="projectsClose">✕</button>
+      </div>
+      
+      <div class="projects-filter">
+        <button class="filter-btn active" data-category="all">ALL</button>
+        <button class="filter-btn" data-category="AI/ML">AI/ML</button>
+        <button class="filter-btn" data-category="IoT">IoT</button>
+        <button class="filter-btn" data-category="Full-Stack">Full-Stack</button>
+        <button class="filter-btn" data-category="Data Analytics">Data Analytics</button>
+      </div>
+      
+      <div class="projects-grid" id="projectsGrid">
+        <!-- Projects will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Detail Modal -->
+  <div id="projectDetailModal" class="project-detail-modal" style="display: none;">
+    <div class="project-detail-content">
+      <button class="project-detail-close" id="projectDetailClose">✕</button>
+      <div id="projectDetailBody">
+        <!-- Project details will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/projectMenu.js"></script>
+</body>
+</html>

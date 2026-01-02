@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Disaster Response Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- TensorFlow.js and MediaPipe for client-side detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675465747/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6.1675465747/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675465747/pose.js"></script>
+    
+    <!-- Anime.js for animations -->
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header animate-header">
+            <div class="header-content">
+                <i class="fas fa-eye header-icon animate-icon"></i>
+                <h1 class="animate-title">Drone Disaster Response Monitor</h1>
+                <div class="status-indicator animate-status" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <section class="control-panel animate-panel">
+            <!-- Input Type Selection -->
+            <div class="input-type-selector animate-selector">
+                <label class="input-type-label animate-option" data-delay="100">
+                    <input type="radio" name="inputType" value="camera" checked>
+                    <span class="radio-custom"></span>
+                    <i class="fas fa-video"></i>
+                    Camera
+                </label>
+                <label class="input-type-label animate-option" data-delay="200">
+                    <input type="radio" name="inputType" value="rtmp">
+                    <span class="radio-custom"></span>
+                    <i class="fas fa-satellite-dish"></i>
+                    RTMP Stream
+                </label>
+            </div>
+
+            <!-- Camera Input Group -->
+            <div class="input-group animate-input" id="cameraGroup" data-delay="300">
+                <label for="cameraSelect">
+                    <i class="fas fa-video"></i>
+                    Select Camera
+                </label>
+                <select id="cameraSelect">
+                    <option value="">Loading cameras...</option>
+                </select>
+                <button id="refreshCamerasBtn" class="btn btn-refresh-small">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- RTMP Input Group -->
+            <div class="input-group animate-input" id="rtmpGroup" style="display: none;" data-delay="300">
+                <label for="rtmpServerUrl">
+                    <i class="fas fa-satellite-dish"></i>
+                    RTMP Server URL
+                </label>
+                <input 
+                    type="url" 
+                    id="rtmpServerUrl" 
+                    placeholder="rtmp://example.com/live" 
+                    value=""
+                >
+                <label for="rtmpStreamKey" style="margin-top: 10px;">
+                    <i class="fas fa-key"></i>
+                    Stream Key
+                </label>
+                <input 
+                    type="text" 
+                    id="rtmpStreamKey" 
+                    placeholder="your-stream-key" 
+                    value=""
+                >
+                <label for="rtmpUrl" style="margin-top: 10px;">
+                    <i class="fas fa-link"></i>
+                    Full RTMP URL (optional)
+                </label>
+                <input 
+                    type="url" 
+                    id="rtmpUrl" 
+                    placeholder="rtmp://example.com/live/your-stream-key" 
+                    value=""
+                >
+            </div>
+
+            <!-- Detection Settings -->
+            <div class="input-group animate-input" data-delay="400">
+                <label for="confidenceSlider">
+                    <i class="fas fa-sliders-h"></i>
+                    Detection Confidence: <span id="confidenceValue">0.6</span>
+                </label>
+                <input 
+                    type="range" 
+                    id="confidenceSlider" 
+                    min="0.1" 
+                    max="1.0" 
+                    step="0.1" 
+                    value="0.6"
+                >
+            </div>
+            
+            <div class="button-group animate-buttons" data-delay="500">
+                <button id="startBtn" class="btn btn-start animate-btn" data-delay="0">
+                    <i class="fas fa-play"></i>
+                    Start Detection
+                </button>
+                <button id="stopBtn" class="btn btn-stop animate-btn" data-delay="100" disabled>
+                    <i class="fas fa-stop"></i>
+                    Stop Detection
+                </button>
+                <button id="toggleDetectionBtn" class="btn btn-toggle animate-btn" data-delay="200">
+                    <i class="fas fa-eye"></i>
+                    Toggle Detection
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="main-content animate-main">
+            <!-- Video Feed Section -->
+            <section class="video-section animate-section" data-delay="600">
+                <div class="video-container">
+                    <div class="video-header">
+                        <h2>
+                            <i class="fas fa-video"></i>
+                            Live Video Feed
+                        </h2>
+                        <div class="video-controls">
+                            <span class="timestamp" id="lastUpdate">No data</span>
+                        </div>
+                    </div>
+                    
+                    <div class="video-display" id="videoDisplay">
+                        <div class="placeholder-content animate-placeholder">
+                            <i class="fas fa-video"></i>
+                            <p>Waiting for camera...</p>
+                            <small>Select a camera and start detection to see live feed with human detection</small>
+                        </div>
+                        <video id="videoElement" autoplay muted playsinline style="display: none;" width="640" height="480"></video>
+                        <canvas id="detectionCanvas" style="display: none;" width="640" height="480"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Section -->
+            <section class="dashboard-section animate-section" data-delay="700">
+                <div class="dashboard-container">
+                    <div class="dashboard-header">
+                        <h2>
+                            <i class="fas fa-chart-line"></i>
+                            Detection Dashboard
+                        </h2>
+                    </div>
+
+                    <!-- Human Count Card -->
+                    <div class="stats-card human-count-card animate-card" data-delay="800">
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Humans Detected</h3>
+                            <div class="count-display" id="humanCount">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Stream Status Card -->
+                    <div class="stats-card stream-status-card animate-card" data-delay="900">
+                        <div class="card-icon">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Stream Status</h3>
+                            <div class="status-display" id="streamStatus">Inactive</div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Stats Card -->
+                    <div class="stats-card performance-card animate-card" data-delay="1000">
+                        <div class="card-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Performance</h3>
+                            <div class="performance-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">FPS:</span>
+                                    <span class="stat-value" id="fpsDisplay">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Process:</span>
+                                    <span class="stat-value" id="processTimeDisplay">0ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detection Log -->
+                    <div class="detection-log">
+                        <div class="log-header">
+                            <h3>
+                                <i class="fas fa-list"></i>
+                                Detection Log
+                            </h3>
+                            <button id="clearLogBtn" class="btn-clear">
+                                <i class="fas fa-trash"></i>
+                                Clear
+                            </button>
+                        </div>
+                        <div class="log-content" id="detectionLog">
+                            <div class="log-empty">
+                                <i class="fas fa-search"></i>
+                                <p>No detections yet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Detections -->
+                    <div class="current-detections">
+                        <h3>
+                            <i class="fas fa-crosshairs"></i>
+                            Current Frame Detections
+                        </h3>
+                        <div class="detections-list" id="currentDetections">
+                            <!-- Detection items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Processing stream...</p>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="modal-overlay" id="errorModal" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error
+                    </h3>
+                    <button class="modal-close" id="closeErrorModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="errorOkBtn">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal-overlay" id="successModal" style="display: none;">
+            <div class="modal success">
+                <div class="modal-header">
+                    <h3>
+                        <i class="fas fa-check-circle"></i>
+                        Success
+                    </h3>
+                    <button class="modal-close" id="closeSuccessModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="successMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="successOkBtn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contactModal" style="display: none;">
+        <div class="modal contact-modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-envelope"></i>
+                    Contact Us
+                </h3>
+                <button class="modal-close" id="closeContactModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="contactName">
+                            <i class="fas fa-user"></i>
+                            Name
+                        </label>
+                        <input 
+                            type="text" 
+                            id="contactName" 
+                            name="name" 
+                            placeholder="Your name" 
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmail">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input 
+                            type="email" 
+                            id="contactEmail" 
+                            name="email" 
+                            placeholder="your.email@example.com" 
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="contactSubject">
+                            <i class="fas fa-tag"></i>
+                            Subject
+                        </label>
+                        <input 
+                            type="text" 
+                            id="contactSubject" 
+                            name="subject" 
+                            placeholder="How can we help?" 
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="contactMessage">
+                            <i class="fas fa-comment-dots"></i>
+                            Message
+                        </label>
+                        <textarea 
+                            id="contactMessage" 
+                            name="message" 
+                            rows="5" 
+                            placeholder="Tell us more about your inquiry..." 
+                            required
+                        ></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelContactBtn">Cancel</button>
+                <button class="btn btn-primary" id="sendContactBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Message
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Drone Disaster Response System | Powered by YOLOv8 & FastAPI</p>
+            <button class="btn-contact" id="contactUsBtn">
+                <i class="fas fa-envelope"></i>
+                Contact Us
+            </button>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

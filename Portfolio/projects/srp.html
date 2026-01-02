@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DynaFlow: Synaptic-Response Neck Pillow</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e6ed;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .bg-particles {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #4a9eff;
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+        
+        /* Main Dashboard Container */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 350px 1fr;
+            grid-template-rows: 70px 1fr 60px;
+            height: 100vh;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(10, 20, 40, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(74, 158, 255, 0.1) 0%, rgba(138, 84, 253, 0.1) 100%);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 20px;
+            padding: 0 30px;
+            backdrop-filter: blur(15px);
+        }
+        
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #4a9eff, #8a54fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 600;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+            animation: pulse-red 2s infinite;
+        }
+        
+        .status-indicator.connected {
+            background: #2ed573;
+            animation: pulse-green 2s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(46, 213, 115, 0); }
+        }
+        
+        /* Left Panel - Metrics */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* Right Panel - Controls */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* Center Panel - Main Vitals */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Glass Card Style */
+        .glass-card {
+            background: rgba(20, 30, 50, 0.4);
+            border: 1px solid rgba(74, 158, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(74, 158, 255, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(74, 158, 255, 0.1);
+        }
+        
+        /* Animated Meters */
+        .meter-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 20px auto;
+        }
+        
+        .meter {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .meter-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                #ff4757 0deg 60deg,
+                #ffa502 60deg 120deg,
+                #2ed573 120deg 240deg,
+                #ff4757 240deg 360deg
+            );
+            padding: 8px;
+            position: relative;
+        }
+        
+        .meter-inner {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #1a1a2e 0%, #0a0a1a 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .meter-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 42px;
+            font-weight: 700;
+            color: #4a9eff;
+            margin-bottom: 6px;
+            text-shadow: 0 0 20px rgba(74, 158, 255, 0.5);
+        }
+        
+        .meter-label {
+            font-size: 14px;
+            color: #a0a6ad;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .meter-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 100px;
+            background: linear-gradient(to top, #4a9eff, #8a54fd);
+            border-radius: 2px;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.8);
+        }
+        
+        .meter-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: #4a9eff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(74, 158, 255, 0.8);
+        }
+        
+        /* Activity Level Display */
+        .activity-display {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .activity-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .activity-level {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .activity-description {
+            font-size: 14px;
+            color: #a0a6ad;
+        }
+        
+        /* BMI Display */
+        .bmi-display {
+            text-align: center;
+        }
+        
+        .bmi-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 40px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #4a9eff, #8a54fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        
+        .bmi-category {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        /* Control Buttons */
+        .ctrl-button {
+            background: linear-gradient(45deg, #4a9eff, #8a54fd);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 25px;
+            color: white;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .ctrl-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .ctrl-button:hover:before {
+            left: 100%;
+        }
+        
+        .ctrl-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(74, 158, 255, 0.3);
+        }
+        
+        .ctrl-button:active {
+            transform: translateY(0);
+        }
+        
+        .ctrl-button.danger {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+        }
+        
+        .ctrl-button.success {
+            background: linear-gradient(45deg, #2ed573, #1dd1a1);
+        }
+        
+        /* Input Fields */
+        .input-field {
+            background: rgba(20, 30, 50, 0.6);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #e0e6ed;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+        }
+        
+        .input-field::placeholder {
+            color: #6c7983;
+        }
+        
+        /* Alerts */
+        .alert {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ff4757;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(20, 30, 50, 0.4);
+            border: 1px solid rgba(74, 158, 255, 0.2);
+            border-radius: 20px;
+            padding: 0 30px;
+            backdrop-filter: blur(15px);
+        }
+        
+        .data-info {
+            font-size: 14px;
+            color: #a0a6ad;
+        }
+        
+        .quick-stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #4a9eff;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #a0a6ad;
+            text-transform: uppercase;
+        }
+        
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        
+        .splash-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .splash-content {
+            background: rgba(20, 30, 50, 0.9);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .splash-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #4a9eff, #8a54fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+        
+        .bmi-input-group {
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .bmi-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e0e6ed;
+            font-size: 14px;
+        }
+        
+        .bmi-result {
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(74, 158, 255, 0.1);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            display: none;
+        }
+        
+        /* AI Summary Modal */
+        .ai-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .ai-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .ai-modal-content {
+            background: rgba(20, 30, 50, 0.95);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 80px rgba(74, 158, 255, 0.2);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: none;
+            border: none;
+            color: #a0a6ad;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            color: #4a9eff;
+        }
+        
+        /* Responsive animations */
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(74, 158, 255, 0.5)); }
+            50% { filter: drop-shadow(0 0 20px rgba(74, 158, 255, 0.8)); }
+        }
+        
+        .glowing {
+            animation: glow 2s infinite;
+        }
+        
+        /* Hide scrollbars but keep functionality */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(20, 30, 50, 0.3);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(74, 158, 255, 0.5);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(74, 158, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen hidden">
+        <div class="splash-content">
+            <h2 class="splash-title">Welcome to DynaFlow</h2>
+            <p style="margin-bottom: 30px; color: #a0a6ad;">Your Synaptic-Response Neck Pillow needs your BMI for personalized health monitoring.</p>
+            
+            <div class="bmi-input-group">
+                <label for="heightInput">Height (cm)</label>
+                <input type="number" id="heightInput" class="input-field" placeholder="Enter your height in cm" min="100" max="250">
+            </div>
+            
+            <div class="bmi-input-group">
+                <label for="weightInput">Weight (kg)</label>
+                <input type="number" id="weightInput" class="input-field" placeholder="Enter your weight in kg" min="30" max="200" step="0.1">
+            </div>
+            
+            <div id="bmiResult" class="bmi-result"></div>
+            
+            <button class="ctrl-button" onclick="calculateBMI()" style="margin-right: 15px;">Calculate BMI</button>
+            <button id="saveBMI" class="ctrl-button success" onclick="saveBMIAndContinue()" style="display: none;">Save & Continue</button>
+        </div>
+    </div>
+
+    <!-- AI Summary Modal -->
+    <div id="aiModal" class="ai-modal">
+        <div class="ai-modal-content">
+            <button class="close-modal" onclick="closeAIModal()">&times;</button>
+            <h3 style="font-family: 'Orbitron', monospace; color: #4a9eff; margin-bottom: 20px;">AI Health Analysis</h3>
+            <div id="aiSummaryContent"></div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">DynaFlow: Synaptic-Response Neck Pillow</div>
+            <div class="connection-status">
+                <div id="statusIndicator" class="status-indicator"></div>
+                <span id="connectionText">Disconnected</span>
+                <div style="margin-left: 30px; font-size: 14px; color: #a0a6ad;">
+                    Last Update: <span id="lastUpdate">Never</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Connection Settings -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #4a9eff; font-family: 'Orbitron', monospace;">Connection</h3>
+                <input type="text" id="deviceIP" class="input-field" placeholder="ESP32 IP Address" value="192.168.34.210">
+                <button id="connectButton" class="ctrl-button" style="width: 100%; margin-bottom: 10px;">Connect Device</button>
+                <button id="disconnectButton" class="ctrl-button danger" style="width: 100%;" disabled>Disconnect</button>
+            </div>
+
+            <!-- User Profile -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #4a9eff; font-family: 'Orbitron', monospace;">Profile</h3>
+                <div class="bmi-display">
+                    <div class="bmi-value" id="bmiDisplay">--</div>
+                    <div class="bmi-category" id="bmiCategory">BMI Status</div>
+                </div>
+                <button onclick="resetBMI()" class="ctrl-button" style="width: 100%; margin-top: 15px;">Update BMI</button>
+            </div>
+
+            <!-- Heart Rate Graph -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #e74c3c; font-family: 'Orbitron', monospace;">Heart Rate Trend</h3>
+                <div style="height: 150px; position: relative;">
+                    <canvas id="heartRateChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel -->
+        <div class="center-panel">
+            <!-- Heart Rate Meter -->
+            <div class="glass-card">
+                <div class="meter-container">
+                    <div class="meter">
+                        <div class="meter-bg">
+                            <div class="meter-inner">
+                                <div class="meter-value" id="bpmValue">--</div>
+                                <div class="meter-label">Heart Rate</div>
+                            </div>
+                        </div>
+                        <div class="meter-needle" id="bpmNeedle"></div>
+                        <div class="meter-center"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SpO2 Meter -->
+            <div class="glass-card">
+                <div class="meter-container">
+                    <div class="meter">
+                        <div class="meter-bg" style="background: conic-gradient(from 180deg, #ff4757 0deg 50deg, #ffa502 50deg 80deg, #2ed573 80deg 360deg);">
+                            <div class="meter-inner">
+                                <div class="meter-value" id="spo2Value" style="color: #2ed573;">--</div>
+                                <div class="meter-label">Oxygen %</div>
+                            </div>
+                        </div>
+                        <div class="meter-needle" id="spo2Needle" style="background: linear-gradient(to top, #2ed573, #1dd1a1);"></div>
+                        <div class="meter-center" style="background: #2ed573;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <!-- Activity Selection -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #4a9eff; font-family: 'Orbitron', monospace;">Activity Selection</h3>
+                <select id="activitySelector" class="input-field" style="margin-bottom: 10px;">
+                    <option value="gaming">🎮 Gaming</option>
+                    <option value="working">💼 Working</option>
+                    <option value="watching">📺 Watching TV</option>
+                    <option value="reading">📚 Reading</option>
+                    <option value="resting">😴 Resting</option>
+                </select>
+                <div style="font-size: 12px; color: #a0a6ad; text-align: center;">
+                    Select your current activity for personalized insights
+                </div>
+            </div>
+
+            <!-- Activity Level -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #4a9eff; font-family: 'Orbitron', monospace;">Activity Status</h3>
+                <div class="activity-display">
+                    <div class="activity-icon" id="activityIcon">😴</div>
+                    <div class="activity-level" id="activityLevel">Monitoring...</div>
+                    <div class="activity-description" id="activityDescription">Waiting for data</div>
+                </div>
+            </div>
+
+            <!-- Ask for AI Advice -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #4a9eff; font-family: 'Orbitron', monospace;">Ask for AI Advice</h3>
+                <button onclick="generateAISummary()" class="ctrl-button" style="width: 100%; margin-bottom: 10px;">
+                    <span id="summaryButtonText">Get Health Insights</span>
+                </button>
+                <button id="clearDataButton" class="ctrl-button danger" style="width: 100%;">Clear Data</button>
+            </div>
+
+            <!-- Alerts Panel -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; color: #ff4757; font-family: 'Orbitron', monospace;">Alerts</h3>
+                <div id="highBpmAlert" class="alert">
+                    ⚠️ High Heart Rate Detected!
+                </div>
+                <div id="sedentaryAlert" class="alert">
+                    💤 Sedentary Activity Detected! Take a break.
+                </div>
+                <div id="alertsList" style="min-height: 60px; color: #a0a6ad; font-size: 14px;">
+                    No active alerts
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="data-info">
+                <span id="dataPoints">Data Points: 0</span> | 
+                <span id="sessionTime">Session: 00:00</span>
+            </div>
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="avgBpm">--</div>
+                    <div class="stat-label">Avg BPM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgSpo2">--</div>
+                    <div class="stat-label">Avg SpO2</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="sessionActivity">Sedentary</div>
+                    <div class="stat-label">Session Activity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let socket = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 20;
+        let connectionMonitorInterval = null;
+        let lastPacketTime = 0;
+        let isManualDisconnect = false;
+        let sessionStartTime = Date.now();
+        let sessionInterval = null;
+        
+        // Data tracking
+        let userBMI = null;
+        let activityData = [];
+        let currentActivityLevel = 'sedentary';
+        let sedentaryStartTime = null;
+        const MAX_ACTIVITY_DATA = 100;
+        const SEDENTARY_THRESHOLD = 5 * 60 * 1000;
+        
+        // Heart rate graph data
+        let heartRateChart = null;
+        let heartRateData = [];
+        let heartRateLabels = [];
+        const MAX_HEART_RATE_POINTS = 50;
+        
+        // Activity selection
+        let selectedActivity = 'gaming';
+        const DEVICE_IP = '192.168.34.210'; // Fixed IP address
+        
+        // Statistics
+        let totalBpm = 0;
+        let totalSpo2 = 0;
+        let dataPointCount = 0;
+        
+        // DOM elements
+        const connectButton = document.getElementById('connectButton');
+        const disconnectButton = document.getElementById('disconnectButton');
+        const clearDataButton = document.getElementById('clearDataButton');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const connectionText = document.getElementById('connectionText');
+        const bpmValueElement = document.getElementById('bpmValue');
+        const spo2ValueElement = document.getElementById('spo2Value');
+        const deviceIPInput = document.getElementById('deviceIP');
+        const bmiDisplay = document.getElementById('bmiDisplay');
+        const bmiCategory = document.getElementById('bmiCategory');
+        const activityIcon = document.getElementById('activityIcon');
+        const activityLevel = document.getElementById('activityLevel');
+        const activityDescription = document.getElementById('activityDescription');
+        const activitySelector = document.getElementById('activitySelector');
+        const highBpmAlert = document.getElementById('highBpmAlert');
+        const sedentaryAlert = document.getElementById('sedentaryAlert');
+        const bpmNeedle = document.getElementById('bpmNeedle');
+        const spo2Needle = document.getElementById('spo2Needle');
+
+        // Initialize app
+        window.addEventListener('load', () => {
+            checkFirstTimeUser();
+            loadUserProfile();
+            createBackgroundAnimation();
+            startSessionTimer();
+            initializeHeartRateChart();
+        });
+
+        // Background animation
+        function createBackgroundAnimation() {
+            const bgAnimation = document.getElementById('bgAnimation');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'bg-particles';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                bgAnimation.appendChild(particle);
+            }
+        }
+
+        // Session timer
+        function startSessionTimer() {
+            sessionInterval = setInterval(() => {
+                const elapsed = Date.now() - sessionStartTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('sessionTime').textContent = 
+                    `Session: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+
+            }, 1000);
+        }
+
+        // Heart Rate Chart
+        function initializeHeartRateChart() {
+            const ctx = document.getElementById('heartRateChart').getContext('2d');
+            heartRateChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: heartRateLabels,
+                    datasets: [{
+                        label: 'Heart Rate (BPM)',
+                        data: heartRateData,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(74, 158, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a6ad',
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 50,
+                            suggestedMax: 120,
+                            grid: {
+                                color: 'rgba(74, 158, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a6ad',
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateHeartRateChart(bpm) {
+            const now = new Date();
+            const timeString = now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
+            
+            heartRateData.push(bpm);
+            heartRateLabels.push(timeString);
+            
+            // Clear data when reaching 50 points
+            if (heartRateData.length > MAX_HEART_RATE_POINTS) {
+                heartRateData = [];
+                heartRateLabels = [];
+                heartRateData.push(bpm);
+                heartRateLabels.push(timeString);
+            }
+            
+            heartRateChart.data.datasets[0].data = heartRateData;
+            heartRateChart.data.labels = heartRateLabels;
+            heartRateChart.update('none'); // No animation for smooth updates
+        }
+
+        // BMI Management - Always show on visit
+        function checkFirstTimeUser() {
+            // Always show BMI setup on every visit
+            document.getElementById('splashScreen').classList.remove('hidden');
+        }
+
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('heightInput').value);
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            
+            if (!height || !weight || height < 100 || height > 250 || weight < 30 || weight > 200) {
+                alert('Please enter valid height (100-250 cm) and weight (30-200 kg)');
+                return;
+            }
+            
+            const bmi = weight / ((height / 100) ** 2);
+            const category = getBMICategory(bmi);
+            
+            const resultDiv = document.getElementById('bmiResult');
+            resultDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-family: 'Orbitron', monospace; font-size: 32px; font-weight: 700; color: #4a9eff; margin-bottom: 10px;">${bmi.toFixed(1)}</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">${category.label}</div>
+                    <div style="font-size: 14px; color: #a0a6ad;">${category.description}</div>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            document.getElementById('saveBMI').style.display = 'inline-block';
+        }
+
+        function getBMICategory(bmi) {
+            if (bmi < 18.5) {
+                return { 
+                    label: 'Underweight', 
+                    description: 'Consider consulting a healthcare provider for personalized advice.' 
+                };
+            } else if (bmi < 25) {
+                return { 
+                    label: 'Normal weight', 
+                    description: 'Great! Maintain your healthy lifestyle.' 
+                };
+            } else if (bmi < 30) {
+                return { 
+                    label: 'Overweight', 
+                    description: 'Consider regular exercise and a balanced diet.' 
+                };
+            } else {
+                return { 
+                    label: 'Obese', 
+                    description: 'Consider consulting a healthcare provider for a comprehensive plan.' 
+                };
+            }
+        }
+
+        function saveBMIAndContinue() {
+            const height = parseFloat(document.getElementById('heightInput').value);
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            const bmi = weight / ((height / 100) ** 2);
+            
+            localStorage.setItem('userBMI', bmi.toFixed(1));
+            localStorage.setItem('userHeight', height);
+            localStorage.setItem('userWeight', weight);
+            
+            document.getElementById('splashScreen').classList.add('hidden');
+            loadUserProfile();
+        }
+
+        function resetBMI() {
+            localStorage.removeItem('userBMI');
+            localStorage.removeItem('userHeight');
+            localStorage.removeItem('userWeight');
+            document.getElementById('splashScreen').classList.remove('hidden');
+            document.getElementById('heightInput').value = '';
+            document.getElementById('weightInput').value = '';
+            document.getElementById('bmiResult').style.display = 'none';
+            document.getElementById('saveBMI').style.display = 'none';
+        }
+
+        function loadUserProfile() {
+            const storedBMI = localStorage.getItem('userBMI');
+            if (storedBMI) {
+                userBMI = parseFloat(storedBMI);
+                bmiDisplay.textContent = storedBMI;
+                const category = getBMICategory(userBMI);
+                bmiCategory.textContent = category.label;
+                bmiCategory.style.background = category.label === 'Normal weight' ? 'rgba(46, 213, 115, 0.2)' :
+                                               category.label === 'Underweight' ? 'rgba(74, 158, 255, 0.2)' :
+                                               category.label === 'Overweight' ? 'rgba(255, 165, 2, 0.2)' :
+                                               'rgba(255, 71, 87, 0.2)';
+                
+                const storedActivityData = localStorage.getItem('activityData');
+                if (storedActivityData) {
+                    activityData = JSON.parse(storedActivityData);
+                }
+            }
+            
+            // Setup activity selector
+            activitySelector.addEventListener('change', (e) => {
+                selectedActivity = e.target.value;
+                localStorage.setItem('selectedActivity', selectedActivity);
+            });
+            
+            // Load saved activity
+            const savedActivity = localStorage.getItem('selectedActivity');
+            if (savedActivity) {
+                selectedActivity = savedActivity;
+                activitySelector.value = savedActivity;
+            }
+        }
+
+        // Meter animations
+        function updateMeter(needle, value, min, max) {
+            const percentage = Math.min(Math.max((value - min) / (max - min), 0), 1);
+            const rotation = -90 + (percentage * 180); // -90 to 90 degrees
+            needle.style.transform = `translate(-50%, -100%) rotate(${rotation}deg)`;
+        }
+
+        // Activity analysis
+        function analyzeActivity(bpm, spo2, temp) {
+            const now = Date.now();
+            
+            const dataPoint = {
+                timestamp: now,
+                bpm: bpm,
+                spo2: spo2,
+                temperature: temp,
+                activityLevel: determineActivityLevel(bpm, spo2)
+            };
+            
+            activityData.push(dataPoint);
+            
+            if (activityData.length > MAX_ACTIVITY_DATA) {
+                activityData.shift();
+            }
+            
+            localStorage.setItem('activityData', JSON.stringify(activityData));
+            updateActivityLevel(dataPoint.activityLevel);
+            checkSedentaryBehavior(dataPoint.activityLevel, now);
+        }
+
+        function determineActivityLevel(bpm, spo2) {
+            let restingBPM = 70;
+            let moderateBPM = 100;
+            let activeBPM = 120;
+            
+            if (userBMI) {
+                if (userBMI < 18.5) {
+                    restingBPM = 75;
+                    moderateBPM = 105;
+                    activeBPM = 125;
+                } else if (userBMI >= 30) {
+                    restingBPM = 80;
+                    moderateBPM = 110;
+                    activeBPM = 130;
+                }
+            }
+            
+            if (bpm < restingBPM) return 'sedentary';
+            else if (bpm < moderateBPM) return 'light';
+            else if (bpm < activeBPM) return 'moderate';
+            else return 'active';
+        }
+
+        function updateActivityLevel(level) {
+            currentActivityLevel = level;
+            
+            const icons = {
+                'sedentary': '😴',
+                'light': '🚶',
+                'moderate': '🏃',
+                'active': '💪'
+            };
+            
+            const descriptions = {
+                'sedentary': 'Resting or minimal movement',
+                'light': 'Light physical activity',
+                'moderate': 'Moderate exercise intensity',
+                'active': 'High intensity activity'
+            };
+            
+            const tips = {
+                'sedentary': 'Consider taking a short walk or stretching',
+                'light': 'Great! Keep maintaining light activity',
+                'moderate': 'Excellent exercise level - stay hydrated',
+                'active': 'High intensity detected - monitor your limits'
+            };
+            
+            const colors = {
+                'sedentary': '#ff4757',
+                'light': '#ffa502',
+                'moderate': '#2ed573',
+                'active': '#4a9eff'
+            };
+            
+            // Update left panel activity display
+            activityIcon.textContent = icons[level];
+            activityLevel.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+            activityLevel.style.color = colors[level];
+            activityDescription.textContent = descriptions[level];
+            
+
+            
+            document.getElementById('sessionActivity').textContent = level.charAt(0).toUpperCase() + level.slice(1);
+        }
+
+        function checkSedentaryBehavior(level, currentTime) {
+            if (level === 'sedentary') {
+                if (!sedentaryStartTime) {
+                    sedentaryStartTime = currentTime;
+                } else if (currentTime - sedentaryStartTime > SEDENTARY_THRESHOLD) {
+                    sedentaryAlert.classList.add('show');
+                    
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        socket.send('{"vibrate":2}');
+                    }
+                }
+            } else {
+                sedentaryStartTime = null;
+                sedentaryAlert.classList.remove('show');
+            }
+        }
+
+        // Process incoming data
+        function processIncomingData(data) {
+            try {
+                const jsonData = JSON.parse(data);
+                
+                if (jsonData.bpm !== undefined) {
+                    const bpm = jsonData.bpm;
+                    bpmValueElement.textContent = bpm.toFixed(0);
+                    updateMeter(bpmNeedle, bpm, 40, 180);
+                    
+                    // Update heart rate chart
+                    updateHeartRateChart(bpm);
+                    
+                    if (bpm > 120) {
+                        highBpmAlert.classList.add('show');
+                        bpmValueElement.parentElement.parentElement.classList.add('glowing');
+                    } else {
+                        highBpmAlert.classList.remove('show');
+                        bpmValueElement.parentElement.parentElement.classList.remove('glowing');
+                    }
+                    
+                    totalBpm += bpm;
+                }
+                
+                if (jsonData.spo2 !== undefined) {
+                    const spo2 = jsonData.spo2;
+                    spo2ValueElement.textContent = spo2.toFixed(0);
+                    updateMeter(spo2Needle, spo2, 80, 100);
+                    totalSpo2 += spo2;
+                }
+                
+                // Temperature data is no longer displayed but still processed for analysis
+                
+                if (jsonData.bpm !== undefined && jsonData.spo2 !== undefined) {
+                    dataPointCount++;
+                    analyzeActivity(jsonData.bpm, jsonData.spo2, jsonData.tempBody || 36.5);
+                    
+                    // Update statistics
+                    document.getElementById('avgBpm').textContent = (totalBpm / dataPointCount).toFixed(0);
+                    document.getElementById('avgSpo2').textContent = (totalSpo2 / dataPointCount).toFixed(0);
+                    document.getElementById('dataPoints').textContent = `Data Points: ${dataPointCount}`;
+                }
+                
+                // Update last update time
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+                
+            } catch (e) {
+                console.log("Non-JSON data received:", data);
+            }
+        }
+
+        // Connection management
+        function startConnectionMonitoring() {
+            lastPacketTime = Date.now();
+            clearInterval(connectionMonitorInterval);
+            
+            connectionMonitorInterval = setInterval(() => {
+                const timeSinceLastPacket = Date.now() - lastPacketTime;
+                
+                if (timeSinceLastPacket > 5000 && !isManualDisconnect) {
+                    onDisconnected();
+                    setTimeout(connect, 1000);
+                }
+            }, 1000);
+        }
+
+        async function connect() {
+            try {
+                isManualDisconnect = false;
+                reconnectAttempts = 0;
+                connectButton.disabled = true;
+                connectionText.textContent = "Connecting...";
+                
+                const deviceIP = deviceIPInput.value.trim();
+                if (!deviceIP) throw new Error("Please enter a valid IP address");
+                
+                const wsUrl = `ws://${deviceIP}:81`;
+                socket = new WebSocket(wsUrl);
+                
+                socket.onopen = () => {
+                    reconnectAttempts = 0;
+                    onConnected();
+                };
+                
+                socket.onmessage = (event) => {
+                    lastPacketTime = Date.now();
+                    processIncomingData(event.data);
+                };
+                
+                socket.onclose = () => {
+                    if (!isManualDisconnect && reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(connect, 500);
+                    } else {
+                        onDisconnected();
+                    }
+                };
+                
+                socket.onerror = (error) => {
+                    if (!isManualDisconnect && reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(connect, 500);
+                    }
+                };
+                
+            } catch (error) {
+                onConnectionFailed(error);
+            }
+        }
+
+        function onConnected() {
+            connectionText.textContent = "Connected";
+            statusIndicator.classList.add('connected');
+            disconnectButton.disabled = false;
+            connectButton.disabled = true;
+            startConnectionMonitoring();
+        }
+
+        function onDisconnected() {
+            clearInterval(connectionMonitorInterval);
+            connectionText.textContent = "Disconnected";
+            statusIndicator.classList.remove('connected');
+            connectButton.disabled = false;
+            disconnectButton.disabled = true;
+        }
+
+        function onConnectionFailed(error) {
+            connectionText.textContent = `Failed: ${error.message}`;
+            connectButton.disabled = false;
+        }
+
+        function disconnect() {
+            isManualDisconnect = true;
+            if (socket) socket.close();
+            onDisconnected();
+        }
+
+        function clearData() {
+            activityData = [];
+            localStorage.removeItem('activityData');
+            
+            dataPointCount = 0;
+            totalBpm = 0;
+            totalSpo2 = 0;
+            
+            bpmValueElement.textContent = "--";
+            spo2ValueElement.textContent = "--";
+            
+            document.getElementById('avgBpm').textContent = "--";
+            document.getElementById('avgSpo2').textContent = "--";
+            document.getElementById('dataPoints').textContent = "Data Points: 0";
+            
+            updateMeter(bpmNeedle, 0, 40, 180);
+            updateMeter(spo2Needle, 0, 80, 100);
+            
+            // Clear heart rate chart
+            heartRateData = [];
+            heartRateLabels = [];
+            if (heartRateChart) {
+                heartRateChart.data.datasets[0].data = heartRateData;
+                heartRateChart.data.labels = heartRateLabels;
+                heartRateChart.update();
+            }
+            
+            highBpmAlert.classList.remove('show');
+            sedentaryAlert.classList.remove('show');
+            updateActivityLevel('sedentary');
+            
+            sessionStartTime = Date.now();
+        }
+
+
+
+        // AI Summary functions
+        async function generateAISummary() {
+            if (activityData.length < 10) {
+                alert('Not enough data for AI analysis. Please collect more health data first.');
+                return;
+            }
+
+            const button = document.getElementById('summaryButtonText');
+            button.innerHTML = '<div class="loading" style="width: 16px; height: 16px; border-width: 2px;"></div>Analyzing...';
+
+            try {
+                const analysisData = prepareDataForAI();
+                const summary = await callGeminiAPI(analysisData);
+                displayAISummary(summary);
+            } catch (error) {
+                console.error('Error generating AI summary:', error);
+                alert('Failed to generate AI summary. Please try again later.');
+                         } finally {
+                 button.textContent = 'Get Health Insights';
+             }
+        }
+
+        function prepareDataForAI() {
+            const recentData = activityData.slice(-100);
+            
+            const bpmStats = calculateStats(recentData.map(d => d.bpm));
+            const spo2Stats = calculateStats(recentData.map(d => d.spo2));
+            const tempStats = calculateStats(recentData.map(d => d.temperature));
+            
+            const activityDistribution = {};
+            recentData.forEach(d => {
+                activityDistribution[d.activityLevel] = (activityDistribution[d.activityLevel] || 0) + 1;
+            });
+            
+            const timeSpan = recentData.length > 0 ? 
+                (recentData[recentData.length - 1].timestamp - recentData[0].timestamp) / (1000 * 60) : 0;
+            
+            return {
+                userBMI: userBMI,
+                bmiCategory: userBMI ? getBMICategory(userBMI).label : 'Unknown',
+                dataPoints: recentData.length,
+                timeSpanMinutes: Math.round(timeSpan),
+                heartRate: bpmStats,
+                oxygenSaturation: spo2Stats,
+                bodyTemperature: tempStats,
+                activityDistribution: activityDistribution,
+                currentActivity: currentActivityLevel,
+                sedentaryTime: sedentaryStartTime ? Date.now() - sedentaryStartTime : 0,
+                selectedActivity: selectedActivity
+            };
+        }
+
+        function calculateStats(data) {
+            if (data.length === 0) return { avg: 0, min: 0, max: 0 };
+            
+            const validData = data.filter(d => d !== undefined && d !== null && !isNaN(d));
+            if (validData.length === 0) return { avg: 0, min: 0, max: 0 };
+            
+            const sum = validData.reduce((a, b) => a + b, 0);
+            return {
+                avg: Math.round(sum / validData.length * 10) / 10,
+                min: Math.min(...validData),
+                max: Math.max(...validData)
+            };
+        }
+
+        async function callGeminiAPI(data) {
+            const API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
+            
+            if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+                return generateMockAISummary(data);
+            }
+
+            const activityContexts = {
+                gaming: 'The user is gaming with the smart neck pillow, which requires good posture and stress management.',
+                working: 'The user is working while using the smart neck pillow for ergonomic support.',
+                watching: 'The user is watching TV while relaxing with the smart neck pillow.',
+                reading: 'The user is reading while using the smart neck pillow for comfort and posture.',
+                resting: 'The user is resting/sleeping with the smart neck pillow for recovery.'
+            };
+
+            const prompt = `
+            As a health AI assistant, analyze this smart neck pillow usage and health data:
+            
+            User Context:
+            - BMI: ${data.userBMI} (${data.bmiCategory})
+            - Current Activity: ${data.selectedActivity} - ${activityContexts[data.selectedActivity]}
+            - Total data points: ${data.dataPoints}
+            
+            Vital Signs Summary:
+            - Heart Rate: avg ${data.heartRate.avg} bpm (range: ${data.heartRate.min}-${data.heartRate.max})
+            - Oxygen Saturation: avg ${data.oxygenSaturation.avg}% (range: ${data.oxygenSaturation.min}-${data.oxygenSaturation.max})
+            
+            Activity Analysis:
+            - Current physiological state: ${data.currentActivity}
+            - Activity distribution: ${JSON.stringify(data.activityDistribution)}
+            - Sedentary time: ${Math.round(data.sedentaryTime / 60000)} mins
+            
+            Please provide specific health insights tailored to their ${data.selectedActivity} activity with the smart neck pillow, including posture recommendations and wellness tips.
+            `;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result.candidates[0].content.parts[0].text;
+        }
+
+        function generateMockAISummary(data) {
+            const activityAdvice = {
+                gaming: '🎮 Gaming-specific advice: Take breaks every 30-45 minutes, maintain good neck alignment, and manage stress levels during intense gameplay.',
+                working: '💼 Work-optimized tips: Adjust monitor height to reduce neck strain, use the pillow to maintain cervical curve, and take micro-breaks hourly.',
+                watching: '📺 Entertainment comfort: Position the screen at eye level, use the pillow for optimal neck support, and avoid prolonged static positions.',
+                reading: '📚 Reading ergonomics: Hold books/devices at appropriate height, use pillow to support natural neck curve, ensure good lighting to prevent forward head posture.',
+                resting: '😴 Recovery mode: The pillow is providing therapeutic support for rest and recovery, maintain this position for optimal rejuvenation.'
+            };
+
+            return `
+            <div style="font-family: 'Exo 2', sans-serif; color: #e0e6ed; line-height: 1.6;">
+                <h4 style="color: #4a9eff; margin-bottom: 20px;">🏥 Smart Neck Pillow Health Analysis</h4>
+                
+                <p><strong>📊 Current Session:</strong> Based on ${data.dataPoints} data points during ${data.selectedActivity}, your health metrics appear ${data.heartRate.avg < 100 ? 'stable' : 'elevated'}.</p>
+                
+                <p><strong>💓 Heart Rate Analysis:</strong> Average ${data.heartRate.avg} bpm (${data.heartRate.avg < 80 ? 'normal resting rate' : data.heartRate.avg < 100 ? 'slightly elevated' : 'elevated - monitor closely'})</p>
+                
+                <p><strong>🫁 Oxygen Levels:</strong> Average SpO2 of ${data.oxygenSaturation.avg}% ${data.oxygenSaturation.avg >= 95 ? '(excellent)' : '(monitor closely)'}</p>
+                
+                <p><strong>🏃‍♂️ Physiological State:</strong><br>
+                ${Object.keys(data.activityDistribution).map(level => 
+                    `• ${level.charAt(0).toUpperCase() + level.slice(1)}: ${data.activityDistribution[level]} readings`
+                ).join('<br>')}</p>
+                
+                <p><strong>🎯 Activity-Specific Insights:</strong><br>
+                ${activityAdvice[data.selectedActivity]}</p>
+                
+                <p><strong>💡 Personalized Recommendations (BMI: ${data.userBMI}):</strong><br>
+                ${data.userBMI < 18.5 ? '• Focus on maintaining good posture during activities<br>• Use pillow for additional neck support' : 
+                  data.userBMI < 25 ? '• Excellent health baseline - continue current activity patterns<br>• Smart pillow is optimally supporting your posture' :
+                  data.userBMI < 30 ? '• Take regular movement breaks during extended sessions<br>• Let the pillow guide proper alignment' :
+                  '• Prioritize frequent position changes<br>• Use pillow therapeutic features for maximum comfort'}</p>
+                
+                <p><strong>⚡ Real-time Feedback:</strong><br>
+                • ${data.sedentaryTime > 300000 ? 'Consider a movement break - your pillow can help with gentle stretches' : 'Good activity balance maintained'}<br>
+                • Monitor continues to track your ${data.selectedActivity} session<br>
+                • Smart pillow is adapting to your current needs</p>
+                
+                <p style="font-style: italic; color: #a0a6ad; margin-top: 20px;">AI-powered insights from your smart neck pillow. Consult healthcare professionals for medical advice.</p>
+            </div>
+            `;
+        }
+
+        function displayAISummary(summary) {
+            document.getElementById('aiSummaryContent').innerHTML = summary;
+            document.getElementById('aiModal').classList.add('show');
+        }
+
+        function closeAIModal() {
+            document.getElementById('aiModal').classList.remove('show');
+        }
+
+        // Event listeners
+        connectButton.addEventListener('click', connect);
+        disconnectButton.addEventListener('click', disconnect);
+        clearDataButton.addEventListener('click', clearData);
+
+        // Close modal when clicking outside
+        document.getElementById('aiModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAIModal();
+            }
+        });
+    </script>
+</body>
+</html>

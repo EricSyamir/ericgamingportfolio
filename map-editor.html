@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map Editor - Portfolio Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #1a1a2e;
+      color: #eee;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #16213e;
+      padding: 8px 15px;
+      border-bottom: 2px solid #0f3460;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-section {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 10px;
+      border-right: 1px solid #0f3460;
+    }
+
+    .toolbar-section:last-child {
+      border-right: none;
+    }
+
+    .toolbar-label {
+      font-size: 10px;
+      color: #00d9ff;
+      margin-right: 5px;
+    }
+
+    .tool-btn {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      border: 2px solid #0f3460;
+      background: #16213e;
+      color: #eee;
+      border-radius: 4px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tool-btn:hover {
+      background: #0f3460;
+      border-color: #00d9ff;
+    }
+
+    .tool-btn.active {
+      background: #00d9ff;
+      color: #16213e;
+      border-color: #00d9ff;
+      font-weight: bold;
+    }
+
+    .tool-btn.green { border-color: #44ff44; }
+    .tool-btn.green.active { background: #44ff44; color: #000; }
+    .tool-btn.red { border-color: #ff4444; }
+    .tool-btn.red.active { background: #ff4444; color: #fff; }
+    .tool-btn.orange { border-color: #ff9944; }
+    .tool-btn.orange.active { background: #ff9944; color: #000; }
+    .tool-btn.blue { border-color: #4444ff; }
+    .tool-btn.blue.active { background: #4444ff; color: #fff; }
+
+    .name-input {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: #0f3460;
+      color: #eee;
+      border: 2px solid #00d9ff;
+      border-radius: 4px;
+      width: 120px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    .checkbox-label input {
+      cursor: pointer;
+    }
+
+    .btn-export {
+      background: #00ff88 !important;
+      color: #000 !important;
+      font-weight: bold;
+      border-color: #00ff88 !important;
+    }
+
+    .btn-import {
+      background: #ff9944 !important;
+      color: #000 !important;
+      border-color: #ff9944 !important;
+    }
+
+    .btn-clear {
+      background: #ff4444 !important;
+      color: #fff !important;
+      border-color: #ff4444 !important;
+    }
+
+    .btn-load {
+      background: #9944ff !important;
+      color: #fff !important;
+      border-color: #9944ff !important;
+    }
+
+    /* Main Content */
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Canvas Area - Takes all available space */
+    .canvas-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0f0f1a;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #mapCanvas {
+      border: 3px solid #00d9ff;
+      cursor: crosshair;
+      image-rendering: pixelated;
+      box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+    }
+
+    /* Right Panel - Objects List */
+    .right-panel {
+      width: 280px;
+      background: #16213e;
+      padding: 15px;
+      overflow-y: auto;
+      border-left: 2px solid #0f3460;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-panel h2 {
+      color: #00d9ff;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .stats {
+      background: #0f3460;
+      padding: 8px;
+      border-radius: 5px;
+      font-size: 10px;
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .stats div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stats .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .object-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .object-item {
+      background: #0f3460;
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      border-left: 3px solid;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .object-item:hover {
+      background: #1a4d6d;
+    }
+
+    .object-item.selected {
+      background: #1a4d6d;
+      box-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+    }
+
+    .object-item.boundary { border-left-color: #ff4444; }
+    .object-item.interactive { border-left-color: #44ff44; }
+    .object-item.combatzone { border-left-color: #ff9944; }
+    .object-item.spawnpoint { border-left-color: #4444ff; }
+
+    .object-name {
+      font-weight: bold;
+      color: #00d9ff;
+      margin-bottom: 3px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+
+    .object-name:hover {
+      background: rgba(0, 217, 255, 0.1);
+    }
+
+    .object-name.editing {
+      background: rgba(0, 217, 255, 0.2);
+    }
+
+    .object-name-input {
+      width: 100%;
+      padding: 2px 4px;
+      font-size: 11px;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      background: #0f3460;
+      color: #00d9ff;
+      border: 2px solid #00d9ff;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .object-details {
+      font-size: 9px;
+      color: #888;
+    }
+
+    .object-actions {
+      margin-top: 5px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .object-actions button {
+      padding: 3px 8px;
+      font-size: 9px;
+    }
+
+    .empty-state {
+      color: #666;
+      text-align: center;
+      padding: 20px;
+      font-size: 11px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: #0f3460;
+      padding: 5px 15px;
+      font-size: 10px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #16213e;
+    }
+
+    .coords {
+      color: #00d9ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-section">
+        <span class="toolbar-label">MODE:</span>
+        <button id="modeInteractive" class="tool-btn green">🟢 Interactive</button>
+        <button id="modeBoundary" class="tool-btn red active">🔴 Boundary</button>
+        <button id="modeCombatZone" class="tool-btn orange">🟠 Combat</button>
+        <button id="modeSpawnPoint" class="tool-btn blue">🔵 Spawn</button>
+        <button id="modeSelect" class="tool-btn">✋ Select</button>
+      </div>
+
+      <div class="toolbar-section">
+        <span class="toolbar-label">NAME:</span>
+        <input type="text" id="objectName" class="name-input" placeholder="wall, bed, pc..." value="wall">
+      </div>
+
+      <div class="toolbar-section">
+        <label class="checkbox-label">
+          <input type="checkbox" id="showGrid" checked> Grid
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="snapToGrid" checked> Snap
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="showLabels" checked> Labels
+        </label>
+      </div>
+
+      <div class="toolbar-section">
+        <button id="loadMapImage" class="tool-btn btn-load">📁 Load Image</button>
+        <input type="file" id="mapImageInput" accept="image/png,image/jpeg" class="hidden">
+        <button id="importJson" class="tool-btn btn-import">📂 Load JSON</button>
+        <input type="file" id="fileInput" accept=".json" class="hidden">
+      </div>
+
+      <div class="toolbar-section">
+        <button id="clearAll" class="tool-btn btn-clear">🗑️ Clear</button>
+        <button id="exportJson" class="tool-btn btn-export">💾 EXPORT</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Canvas Area -->
+      <div class="canvas-area" id="canvasArea">
+        <canvas id="mapCanvas" width="640" height="560"></canvas>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <h2>📦 OBJECTS</h2>
+        
+        <div class="stats">
+          <div><span class="dot" style="background:#ff4444"></span> Bounds: <span id="countBoundaries">0</span></div>
+          <div><span class="dot" style="background:#44ff44"></span> Inter: <span id="countInteractives">0</span></div>
+          <div><span class="dot" style="background:#ff9944"></span> Combat: <span id="countCombatZones">0</span></div>
+          <div><span class="dot" style="background:#4444ff"></span> Spawn: <span id="countSpawnPoints">0</span></div>
+        </div>
+
+        <div class="object-list" id="objectList">
+          <p class="empty-state">No objects yet.<br>Draw on the canvas!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>Image: <strong id="mapFileName">Loading...</strong> (<span id="mapSize">-</span>)</span>
+      <span class="coords">Mouse: <span id="mouseCoords">0, 0</span></span>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasArea = document.getElementById('canvasArea');
+    let mapImage = new Image();
+    let scale = 1;
+
+    // Editor state
+    let currentMode = 'boundary';
+    let objects = [];
+    let isDrawing = false;
+    let startX, startY;
+    let currentRect = null;
+    let selectedObjectIndex = null;
+    let nextObjectId = 1;
+
+    // Settings
+    let showGrid = true;
+    let snapToGrid = true;
+    let showLabels = true;
+    const GRID_SIZE = 16;
+
+    // Mode colors
+    const modeColors = {
+      interactive: '#44ff44',
+      boundary: '#ff4444',
+      combatzone: '#ff9944',
+      spawnpoint: '#4444ff'
+    };
+
+    // Auto-fit canvas to available space
+    function autoFitCanvas() {
+      const areaWidth = canvasArea.clientWidth - 40;
+      const areaHeight = canvasArea.clientHeight - 40;
+      
+      if (mapImage.width && mapImage.height) {
+        const scaleX = areaWidth / mapImage.width;
+        const scaleY = areaHeight / mapImage.height;
+        scale = Math.min(scaleX, scaleY);
+        
+        canvas.style.width = (mapImage.width * scale) + 'px';
+        canvas.style.height = (mapImage.height * scale) + 'px';
+      }
+    }
+
+    // Load map image
+    function loadMapImage() {
+      const paths = ['./map.png', '/map.png', 'map.png', './Gemini_Generated_Image_n2kch7n2kch7n2kc.png'];
+      let idx = 0;
+
+      function tryNext() {
+        if (idx >= paths.length) {
+          document.getElementById('mapFileName').textContent = 'Not found';
+          document.getElementById('mapSize').textContent = 'Use Load Image button';
+          canvas.width = 800;
+          canvas.height = 600;
+          ctx.fillStyle = '#333';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#fff';
+          ctx.font = '16px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('Click "Load Image" to load your map', canvas.width/2, canvas.height/2);
+          autoFitCanvas();
+          return;
+        }
+
+        mapImage.onload = () => {
+          canvas.width = mapImage.width;
+          canvas.height = mapImage.height;
+          document.getElementById('mapFileName').textContent = paths[idx].split('/').pop();
+          document.getElementById('mapSize').textContent = `${mapImage.width}×${mapImage.height}`;
+          autoFitCanvas();
+          render();
+        };
+
+        mapImage.onerror = () => {
+          idx++;
+          tryNext();
+        };
+
+        mapImage.src = paths[idx] + '?' + Date.now();
+      }
+
+      tryNext();
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      autoFitCanvas();
+    });
+
+    // Load map on start
+    loadMapImage();
+
+    // Mode buttons
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+      if (!btn.id.startsWith('mode')) return;
+      
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn').forEach(b => {
+          if (b.id.startsWith('mode')) b.classList.remove('active');
+        });
+        btn.classList.add('active');
+        
+        const modes = {
+          modeInteractive: 'interactive',
+          modeBoundary: 'boundary',
+          modeCombatZone: 'combatzone',
+          modeSpawnPoint: 'spawnpoint',
+          modeSelect: 'select'
+        };
+        
+        currentMode = modes[btn.id];
+        canvas.style.cursor = currentMode === 'select' ? 'pointer' : 'crosshair';
+      });
+    });
+
+    // Settings
+    document.getElementById('showGrid').addEventListener('change', (e) => {
+      showGrid = e.target.checked;
+      render();
+    });
+
+    document.getElementById('snapToGrid').addEventListener('change', (e) => {
+      snapToGrid = e.target.checked;
+    });
+
+    document.getElementById('showLabels').addEventListener('change', (e) => {
+      showLabels = e.target.checked;
+      render();
+    });
+
+    // Load image button
+    document.getElementById('loadMapImage').addEventListener('click', () => {
+      document.getElementById('mapImageInput').click();
+    });
+
+    document.getElementById('mapImageInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        mapImage.onload = () => {
+          canvas.width = mapImage.width;
+          canvas.height = mapImage.height;
+          document.getElementById('mapFileName').textContent = file.name;
+          document.getElementById('mapSize').textContent = `${mapImage.width}×${mapImage.height}`;
+          autoFitCanvas();
+          render();
+        };
+        mapImage.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Get canvas coordinates from mouse event
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      let x = (e.clientX - rect.left) * scaleX;
+      let y = (e.clientY - rect.top) * scaleY;
+      
+      if (snapToGrid && currentMode !== 'select') {
+        x = Math.round(x / GRID_SIZE) * GRID_SIZE;
+        y = Math.round(y / GRID_SIZE) * GRID_SIZE;
+      }
+      
+      return { x: Math.round(x), y: Math.round(y) };
+    }
+
+    // Mouse events
+    canvas.addEventListener('mousedown', (e) => {
+      const coords = getCanvasCoords(e);
+      
+      if (currentMode === 'select') {
+        selectObjectAt(coords.x, coords.y);
+      } else {
+        isDrawing = true;
+        startX = coords.x;
+        startY = coords.y;
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const coords = getCanvasCoords(e);
+      document.getElementById('mouseCoords').textContent = `${coords.x}, ${coords.y}`;
+      
+      if (!isDrawing || currentMode === 'select') return;
+      
+      currentRect = {
+        x: Math.min(startX, coords.x),
+        y: Math.min(startY, coords.y),
+        width: Math.abs(coords.x - startX),
+        height: Math.abs(coords.y - startY)
+      };
+      
+      render();
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (!isDrawing || currentMode === 'select') return;
+      
+      isDrawing = false;
+      
+      if (currentRect && currentRect.width > 5 && currentRect.height > 5) {
+        const name = document.getElementById('objectName').value || 'unnamed';
+        
+        objects.push({
+          id: nextObjectId++,
+          type: currentMode,
+          name: name,
+          x: currentRect.x,
+          y: currentRect.y,
+          width: currentRect.width,
+          height: currentRect.height,
+          color: modeColors[currentMode]
+        });
+        
+        updateObjectList();
+        render();
+      }
+      
+      currentRect = null;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isDrawing = false;
+      currentRect = null;
+      render();
+    });
+
+    function selectObjectAt(x, y) {
+      selectedObjectIndex = null;
+      
+      for (let i = objects.length - 1; i >= 0; i--) {
+        const obj = objects[i];
+        if (x >= obj.x && x <= obj.x + obj.width &&
+            y >= obj.y && y <= obj.y + obj.height) {
+          selectedObjectIndex = i;
+          break;
+        }
+      }
+      
+      updateObjectList();
+      render();
+    }
+
+    // Render canvas
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw map image
+      if (mapImage.complete && mapImage.width) {
+        ctx.drawImage(mapImage, 0, 0);
+      }
+      
+      // Draw grid
+      if (showGrid) {
+        ctx.strokeStyle = 'rgba(0, 217, 255, 0.15)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+      }
+      
+      // Draw objects
+      objects.forEach((obj, index) => {
+        const isSelected = index === selectedObjectIndex;
+        
+        ctx.strokeStyle = obj.color;
+        ctx.fillStyle = obj.color + '40';
+        ctx.lineWidth = isSelected ? 4 : 2;
+        
+        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+        ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+        
+        if (showLabels) {
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 14px monospace';
+          ctx.fillText(obj.name, obj.x + 4, obj.y + 16);
+        }
+      });
+      
+      // Draw current rectangle
+      if (currentRect) {
+        const color = modeColors[currentMode];
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color + '40';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.fillRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+        ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+        ctx.setLineDash([]);
+      }
+    }
+
+    // Update object list
+    function updateObjectList() {
+      const list = document.getElementById('objectList');
+      
+      if (objects.length === 0) {
+        list.innerHTML = '<p class="empty-state">No objects yet.<br>Draw on the canvas!</p>';
+      } else {
+        list.innerHTML = objects.map((obj, i) => `
+          <div class="object-item ${obj.type} ${i === selectedObjectIndex ? 'selected' : ''}" 
+               onclick="selectObject(${i})">
+            <div class="object-name" 
+                 ondblclick="startRename(${i}); event.stopPropagation();"
+                 title="Double-click to rename">
+              ${obj.name}
+            </div>
+            <div class="object-details">
+              ${obj.type} | (${obj.x}, ${obj.y}) ${obj.width}×${obj.height}
+            </div>
+            <div class="object-actions">
+              <button class="tool-btn" onclick="startRename(${i}); event.stopPropagation();" title="Rename">✏️</button>
+              <button class="tool-btn btn-clear" onclick="deleteObject(${i}); event.stopPropagation();" title="Delete">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      // Update counts
+      const counts = { boundary: 0, interactive: 0, combatzone: 0, spawnpoint: 0 };
+      objects.forEach(obj => counts[obj.type]++);
+      
+      document.getElementById('countBoundaries').textContent = counts.boundary;
+      document.getElementById('countInteractives').textContent = counts.interactive;
+      document.getElementById('countCombatZones').textContent = counts.combatzone;
+      document.getElementById('countSpawnPoints').textContent = counts.spawnpoint;
+    }
+
+    // Start inline renaming
+    window.startRename = function(i) {
+      const item = document.querySelectorAll('.object-item')[i];
+      if (!item) return;
+      
+      const nameDiv = item.querySelector('.object-name');
+      const oldName = objects[i].name;
+      
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'object-name-input';
+      input.value = oldName;
+      input.style.width = '100%';
+      
+      nameDiv.replaceWith(input);
+      input.focus();
+      input.select();
+      
+      const finishRename = () => {
+        const newName = input.value.trim() || oldName;
+        objects[i].name = newName;
+        updateObjectList();
+        render();
+      };
+      
+      input.addEventListener('blur', finishRename);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          finishRename();
+        } else if (e.key === 'Escape') {
+          updateObjectList();
+        }
+      });
+    };
+
+    window.selectObject = function(i) {
+      selectedObjectIndex = i;
+      updateObjectList();
+      render();
+    };
+
+    window.editObject = function(i) {
+      startRename(i);
+    };
+
+    window.deleteObject = function(i) {
+      if (confirm('Delete this object?')) {
+        objects.splice(i, 1);
+        selectedObjectIndex = null;
+        updateObjectList();
+        render();
+      }
+    };
+
+    // Clear all
+    document.getElementById('clearAll').addEventListener('click', () => {
+      if (confirm('Delete ALL objects?')) {
+        objects = [];
+        selectedObjectIndex = null;
+        nextObjectId = 1;
+        updateObjectList();
+        render();
+      }
+    });
+
+    // Import JSON
+    document.getElementById('importJson').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          objects = [];
+          nextObjectId = 1;
+          
+          data.layers.forEach(layer => {
+            if (layer.type === 'objectgroup' && layer.objects) {
+              layer.objects.forEach(obj => {
+                if (obj.point) return;
+                
+                let type = 'boundary';
+                if (layer.name === 'combatzones') type = 'combatzone';
+                else if (layer.name === 'spawnpoints') type = 'spawnpoint';
+                else if (obj.name && !['wall', 'boundary'].includes(obj.name)) type = 'interactive';
+                
+                objects.push({
+                  id: nextObjectId++,
+                  type,
+                  name: obj.name || 'unnamed',
+                  x: obj.x,
+                  y: obj.y,
+                  width: obj.width || 16,
+                  height: obj.height || 16,
+                  color: modeColors[type]
+                });
+              });
+            }
+          });
+          
+          updateObjectList();
+          render();
+          alert(`Loaded ${objects.length} objects!`);
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Export JSON
+    document.getElementById('exportJson').addEventListener('click', () => {
+      const boundaries = [], combatZones = [], spawnPoints = [];
+      let id = 1;
+      
+      objects.forEach(obj => {
+        const mapObj = {
+          height: obj.height,
+          id: id++,
+          name: obj.name,
+          rotation: 0,
+          type: obj.type === 'interactive' ? 'boundary' : '',
+          visible: true,
+          width: obj.width,
+          x: obj.x,
+          y: obj.y
+        };
+        
+        if (obj.type === 'combatzone') combatZones.push(mapObj);
+        else if (obj.type === 'spawnpoint') {
+          mapObj.point = true;
+          spawnPoints.push(mapObj);
+        }
+        else boundaries.push(mapObj);
+      });
+      
+      const mapData = {
+        compressionlevel: -1,
+        height: Math.ceil(canvas.height / 16),
+        infinite: false,
+        layers: [
+          { data: new Array(Math.ceil(canvas.width/16) * Math.ceil(canvas.height/16)).fill(0), height: Math.ceil(canvas.height/16), id: 1, name: "ground", opacity: 1, type: "tilelayer", visible: true, width: Math.ceil(canvas.width/16), x: 0, y: 0 },
+          { data: new Array(Math.ceil(canvas.width/16) * Math.ceil(canvas.height/16)).fill(0), height: Math.ceil(canvas.height/16), id: 2, name: "objects", opacity: 1, type: "tilelayer", visible: true, width: Math.ceil(canvas.width/16), x: 0, y: 0 },
+          { draworder: "topdown", id: 3, name: "boundaries", objects: boundaries, opacity: 1, type: "objectgroup", visible: true, x: 0, y: 0 },
+          { draworder: "topdown", id: 4, name: "combatzones", objects: combatZones, opacity: 1, type: "objectgroup", visible: true, x: 0, y: 0 },
+          { draworder: "topdown", id: 5, name: "spawnpoints", objects: spawnPoints, opacity: 1, type: "objectgroup", visible: true, x: 0, y: 0 }
+        ],
+        nextlayerid: 6,
+        nextobjectid: id,
+        orientation: "orthogonal",
+        renderorder: "right-down",
+        tiledversion: "1.10.2",
+        tileheight: 16,
+        tilewidth: 16,
+        type: "map",
+        version: "1.10",
+        width: Math.ceil(canvas.width / 16),
+        tilesets: [{ columns: 40, firstgid: 1, image: "spritesheet.png", imageheight: 320, imagewidth: 640, margin: 0, name: "spritesheet", spacing: 0, tilecount: 800, tileheight: 16, tilewidth: 16 }]
+      };
+      
+      const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'map.json';
+      a.click();
+      
+      alert(`Exported!\nBoundaries: ${boundaries.length}\nCombat Zones: ${combatZones.length}\nSpawn Points: ${spawnPoints.length}`);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // F2 to rename selected object
+      if (e.key === 'F2' && selectedObjectIndex !== null) {
+        e.preventDefault();
+        startRename(selectedObjectIndex);
+      }
+      // Delete key to delete selected object
+      if (e.key === 'Delete' && selectedObjectIndex !== null) {
+        e.preventDefault();
+        deleteObject(selectedObjectIndex);
+      }
+    });
+
+    // Initial render
+    updateObjectList();
+  </script>
+</body>
+</html>

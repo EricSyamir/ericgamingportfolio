@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPricePedia</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            scroll-behavior: smooth;
+            transition: transform 0.3s ease;
+        }
+        body.sidebar-open {
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 4px rgba(238, 77, 45, 0.2);
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+        .search-container {
+            flex: 1;
+            min-width: 300px;
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        .search-container.active {
+            box-shadow: 0 4px 12px rgba(238, 77, 45, 0.3);
+            border: 2px solid #d65e46;
+        }
+        .search-container h2 {
+            text-align: center;
+            color: #EE4D2D;
+            border-bottom: 2px solid #EE4D2D;
+            padding-bottom: 0.5rem;
+        }
+        .search-input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            transition: border-color 0.3s ease;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #EE4D2D;
+            box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.2);
+        }
+        .search-wrapper:has(.autocomplete-dropdown.show) .search-input {
+            border-radius: 4px 4px 0 0;
+            border-bottom-color: #EE4D2D;
+        }
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+        .btn-search {
+            background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%);
+        }
+        .btn-search:hover {
+            background: linear-gradient(135deg, #d63916 0%, #e55a2b 100%);
+            transform: translateY(-1px);
+        }
+        .btn-reset {
+            background: linear-gradient(135deg, #666 0%, #888 100%);
+        }
+        .btn-reset:hover {
+            background: linear-gradient(135deg, #555 0%, #777 100%);
+            transform: translateY(-1px);
+        }
+        .results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            min-height: 150px;
+        }
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%);
+            color: white;
+            box-shadow: 0 -2px 4px rgba(238, 77, 45, 0.2);
+        }
+        .highlight-winner {
+            background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%) !important;
+            color: white;
+        }
+        .highlight-winner .results {
+            background-color: rgba(238, 77, 45, 0.1);
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        /* New comparison section styles */
+        .comparison-section {
+            margin: 2rem 1rem;
+            padding: 1.5rem;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .comparison-header {
+            text-align: center;
+            color: #EE4D2D;
+            border-bottom: 2px solid #EE4D2D;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .comparison-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .comparison-card {
+            padding: 1rem;
+            border: 2px solid #EE4D2D;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(238, 77, 45, 0.1);
+        }
+        .comparison-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #EE4D2D;
+        }
+        .comparison-card.best-price {
+            border-color: #EE4D2D;
+            background: linear-gradient(135deg, rgba(238, 77, 45, 0.05) 0%, rgba(255, 101, 51, 0.05) 100%);
+        }
+        .comparison-card.fastest-delivery {
+            border-color: #EE4D2D;
+            background: linear-gradient(135deg, rgba(238, 77, 45, 0.05) 0%, rgba(255, 101, 51, 0.05) 100%);
+        }
+        .price-difference {
+            font-weight: bold;
+        }
+        .price-difference.savings {
+            color: #EE4D2D;
+            font-weight: bold;
+        }
+        .price-difference.markup {
+            color: #666;
+            font-weight: bold;
+        }
+        .delivery-info {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: linear-gradient(180deg, #EE4D2D 0%, #FF6533 100%);
+            color: white;
+            transition: left 0.3s ease;
+            z-index: 2000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .sidebar-header {
+            padding: 60px 20px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin: 5px 0 0 0;
+        }
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+        .sidebar-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            padding-left: 10px;
+            transform: translateX(5px);
+        }
+        .sidebar-link-icon {
+            font-size: 1.2rem;
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar-link-text {
+            flex: 1;
+        }
+        .sidebar-link-arrow {
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-link:hover .sidebar-link-arrow {
+            opacity: 1;
+        }
+        .social-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .social-link:hover {
+            background-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        .social-link i {
+            margin-right: 6px;
+        }
+        
+        /* Hamburger Menu */
+        .hamburger {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2001;
+            background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(238, 77, 45, 0.3);
+            transition: all 0.3s ease;
+        }
+        .hamburger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(238, 77, 45, 0.4);
+        }
+        .hamburger-line {
+            width: 20px;
+            height: 2px;
+            background-color: white;
+            margin: 3px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+        .hamburger.active .hamburger-line:nth-child(1) {
+            transform: rotate(-45deg) translate(-4px, 5px);
+        }
+        .hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active .hamburger-line:nth-child(3) {
+            transform: rotate(45deg) translate(-4px, -5px);
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            margin: 2rem 1rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .stats-header {
+            text-align: center;
+            color: #EE4D2D;
+            margin-bottom: 1.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            border-color: #EE4D2D;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(238, 77, 45, 0.1);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #EE4D2D;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        /* Autocomplete Dropdown Styles */
+        .search-wrapper {
+            position: relative;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #EE4D2D;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 12px rgba(238, 77, 45, 0.2);
+        }
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+        .autocomplete-item:hover {
+            background-color: rgba(238, 77, 45, 0.1);
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-item.selected {
+            background-color: rgba(238, 77, 45, 0.15);
+        }
+        .autocomplete-product-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .autocomplete-product-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .autocomplete-price {
+            color: #EE4D2D;
+            font-weight: bold;
+        }
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Welcome Screen Styles */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .welcome-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .welcome-modal {
+            background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(238, 77, 45, 0.3);
+            transform: scale(1);
+            transition: transform 0.3s ease;
+            animation: welcomeSlideIn 0.6s ease-out;
+        }
+        .welcome-modal:hover {
+            transform: scale(1.02);
+        }
+        .welcome-modal h1 {
+            margin: 0 0 1rem 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .welcome-modal p {
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        .welcome-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .welcome-btn:hover {
+            background: white;
+            color: #EE4D2D;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+        .default-dataset-option {
+            border: 2px solid #ffffff;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .default-dataset-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+        .upload-option {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .upload-option:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .welcome-features {
+            display: flex;
+            justify-content: space-around;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .feature {
+            text-align: center;
+            margin: 0.5rem;
+            min-width: 120px;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .feature-text {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        @keyframes welcomeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* Enhanced Responsive Design */
+        
+        /* Large tablets and small desktops (1024px and down) */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 0.75rem;
+            }
+            .search-container {
+                margin: 0.5rem 0.25rem;
+                padding: 1rem 0.75rem;
+            }
+            .footer > div {
+                padding: 1.5rem 1rem;
+            }
+            .footer > div > div {
+                gap: 1.5rem;
+            }
+        }
+        
+        /* Tablets (768px and down) */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 0.5rem;
+            }
+            .search-container {
+                margin: 0.5rem 0;
+                min-width: unset;
+                padding: 1rem;
+            }
+            .search-container h2 {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+            }
+            .search-input {
+                padding: 12px 15px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                width: calc(100% - 30px);
+            }
+            .btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+                margin: 5px 5px 5px 0;
+                min-width: 100px;
+            }
+            .hamburger {
+                top: 15px;
+                left: 15px;
+                padding: 10px;
+            }
+            .header {
+                padding: 1rem 1rem 1rem 70px;
+                text-align: left;
+            }
+            .header h1 {
+                font-size: 1.4rem;
+                margin: 0;
+            }
+            .sidebar {
+                width: 300px;
+                left: -300px;
+            }
+            .sidebar-header {
+                padding: 50px 20px 20px 20px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            .stat-card {
+                padding: 1rem;
+            }
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            .stat-icon {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }
+            .comparison-section {
+                margin: 1.5rem 0.5rem;
+                padding: 1rem;
+            }
+            .comparison-card {
+                padding: 0.75rem;
+            }
+            .welcome-modal {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+                max-width: 90%;
+            }
+            .welcome-modal h1 {
+                font-size: 2rem;
+            }
+            .welcome-features {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            .feature {
+                margin: 0.25rem;
+            }
+            .social-links {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            .footer > div > div {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+            .autocomplete-dropdown {
+                max-height: 250px;
+            }
+        }
+        
+        /* Large mobile phones (600px and down) */
+        @media (max-width: 600px) {
+            .header {
+                padding: 0.75rem 0.75rem 0.75rem 60px;
+                font-size: 1.2rem;
+            }
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            .hamburger {
+                top: 12px;
+                left: 12px;
+                padding: 8px;
+            }
+            .hamburger-line {
+                width: 18px;
+            }
+            .container {
+                padding: 0.25rem;
+            }
+            .search-container {
+                margin: 0.25rem 0;
+                padding: 0.75rem;
+                border-radius: 6px;
+            }
+            .search-container h2 {
+                font-size: 1.1rem;
+                margin-bottom: 0.75rem;
+            }
+            .search-input {
+                padding: 14px 15px;
+                margin-bottom: 12px;
+                border-radius: 6px;
+                font-size: 16px;
+            }
+            .btn {
+                padding: 12px 16px;
+                margin: 4px 4px 4px 0;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                min-width: 90px;
+            }
+            .results {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            .sidebar-section {
+                padding: 15px;
+            }
+            .sidebar-link {
+                padding: 10px 0;
+                font-size: 0.9rem;
+            }
+            .social-link {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
+            .stats-section {
+                margin: 1rem 0.25rem;
+                padding: 1rem 0.75rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            .stat-card {
+                padding: 0.75rem 0.5rem;
+            }
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            .stat-label {
+                font-size: 0.8rem;
+            }
+            .comparison-section {
+                margin: 1rem 0.25rem;
+                padding: 0.75rem;
+            }
+            .comparison-header h2 {
+                font-size: 1.2rem;
+            }
+            .comparison-card {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+            .comparison-card h4 {
+                font-size: 1rem;
+            }
+            .footer > div {
+                padding: 1.5rem 0.75rem;
+            }
+            .footer > div > div {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+                text-align: center;
+            }
+            .autocomplete-dropdown {
+                max-height: 200px;
+                border-radius: 0 0 6px 6px;
+            }
+            .autocomplete-item {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Small mobile phones (480px and down) */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            .search-container {
+                padding: 0.5rem;
+            }
+            .search-container h2 {
+                font-size: 1rem;
+            }
+            .search-input {
+                padding: 12px;
+                font-size: 16px;
+                width: calc(100% - 24px);
+            }
+            .btn {
+                width: 100%;
+                margin: 3px 0;
+                padding: 14px;
+                font-size: 1rem;
+            }
+            .results {
+                padding: 0.5rem;
+                font-size: 0.85rem;
+                min-height: 120px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-card {
+                padding: 1rem 0.75rem;
+                text-align: center;
+            }
+            .comparison-results {
+                grid-template-columns: 1fr;
+            }
+            .comparison-card {
+                margin-bottom: 0.5rem;
+            }
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+            .welcome-modal {
+                margin: 0.5rem;
+                padding: 1.5rem 1rem;
+                border-radius: 15px;
+            }
+            .welcome-modal h1 {
+                font-size: 1.75rem;
+            }
+            .welcome-modal p {
+                font-size: 1rem;
+            }
+            .welcome-btn {
+                padding: 14px 25px;
+                font-size: 1rem;
+                width: 100%;
+                margin-top: 1rem;
+            }
+            .default-dataset-option,
+            .upload-option {
+                padding: 0.75rem;
+                margin: 0.5rem 0;
+            }
+            .feature-icon {
+                font-size: 1.5rem;
+            }
+            .feature-text {
+                font-size: 0.8rem;
+            }
+            .social-links {
+                grid-template-columns: 1fr;
+            }
+            .autocomplete-dropdown {
+                max-height: 180px;
+                font-size: 0.9rem;
+            }
+            .autocomplete-item {
+                padding: 8px 10px;
+            }
+            .autocomplete-product-title {
+                font-size: 0.9rem;
+            }
+            .autocomplete-product-details {
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Extra small screens (360px and down) */
+        @media (max-width: 360px) {
+            .header {
+                padding: 0.5rem 0.5rem 0.5rem 50px;
+            }
+            .header h1 {
+                font-size: 1rem;
+            }
+            .hamburger {
+                top: 10px;
+                left: 10px;
+                padding: 6px;
+            }
+            .hamburger-line {
+                width: 16px;
+                height: 1.5px;
+                margin: 2.5px 0;
+            }
+            .container {
+                padding: 0.125rem;
+            }
+            .search-container {
+                margin: 0.125rem 0;
+                padding: 0.5rem;
+            }
+            .stats-section,
+            .comparison-section {
+                margin: 0.75rem 0.125rem;
+                padding: 0.5rem;
+            }
+            .welcome-modal {
+                margin: 0.25rem;
+                padding: 1rem 0.75rem;
+            }
+            .welcome-modal h1 {
+                font-size: 1.5rem;
+            }
+            .sidebar-header {
+                padding: 40px 15px 15px 15px;
+            }
+            .sidebar-title {
+                font-size: 1.25rem;
+            }
+            .footer > div {
+                padding: 1rem 0.5rem;
+            }
+        }
+        
+        /* Landscape orientation for mobile devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .welcome-modal {
+                padding: 1rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            .welcome-modal h1 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+            .welcome-modal p {
+                margin: 0.5rem 0;
+                font-size: 0.9rem;
+            }
+            .welcome-features {
+                flex-direction: row;
+                justify-content: space-around;
+                margin: 1rem 0;
+            }
+            .feature {
+                margin: 0.25rem;
+            }
+            .stats-section {
+                padding: 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.5rem;
+            }
+            .stat-card {
+                padding: 0.5rem;
+            }
+            .stat-number {
+                font-size: 1.1rem;
+            }
+            .stat-icon {
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        @media (pointer: coarse) {
+            .btn {
+                min-height: 44px; /* Apple's recommended touch target size */
+                touch-action: manipulation;
+            }
+            .sidebar-link {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+            .social-link {
+                min-height: 40px;
+            }
+            .autocomplete-item {
+                min-height: 44px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .hamburger {
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hamburger Menu -->
+    <button class="hamburger" id="hamburger-btn">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">🛍️ SPricePedia</h2>
+            <p class="sidebar-subtitle">Your Shopping Companion</p>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>🏪 Official Shopee</h3>
+            <a href="https://shopee.com.my" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">🇲🇾</span>
+                <span class="sidebar-link-text">Shopee Malaysia</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+            <a href="https://shopee.sg" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">🇸🇬</span>
+                <span class="sidebar-link-text">Shopee Singapore</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+            <a href="https://shopee.co.th" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">🇹🇭</span>
+                <span class="sidebar-link-text">Shopee Thailand</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+            <a href="https://shopee.vn" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">🇻🇳</span>
+                <span class="sidebar-link-text">Shopee Vietnam</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>📱 Social Media</h3>
+            <div class="social-links">
+                <a href="https://www.facebook.com/ShopeeMY" target="_blank" class="social-link">
+                    <span>📘</span> Facebook
+                </a>
+                <a href="https://www.instagram.com/shopee_my" target="_blank" class="social-link">
+                    <span>📷</span> Instagram
+                </a>
+                <a href="https://twitter.com/ShopeeMY" target="_blank" class="social-link">
+                    <span>🐦</span> Twitter
+                </a>
+                <a href="https://www.youtube.com/channel/UCZCIgN_kE3r3VX8_p0QD4hA" target="_blank" class="social-link">
+                    <span>📺</span> YouTube
+                </a>
+                <a href="https://www.tiktok.com/@shopee_my" target="_blank" class="social-link">
+                    <span>🎵</span> TikTok
+                </a>
+                <a href="https://www.linkedin.com/company/shopee" target="_blank" class="social-link">
+                    <span>💼</span> LinkedIn
+                </a>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>🛠️ Tools & Resources</h3>
+            <a href="https://seller.shopee.com.my" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">🏪</span>
+                <span class="sidebar-link-text">Seller Centre</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+            <a href="https://help.shopee.com.my" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">❓</span>
+                <span class="sidebar-link-text">Help Centre</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+            <a href="https://careers.shopee.com" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">💼</span>
+                <span class="sidebar-link-text">Careers</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+            <a href="https://shopee.com.my/about" target="_blank" class="sidebar-link">
+                <span class="sidebar-link-icon">ℹ️</span>
+                <span class="sidebar-link-text">About Shopee</span>
+                <span class="sidebar-link-arrow">→</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>📊 SPricePedia Stats</h3>
+            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.6;">
+                <p>🔍 Total Products: <span id="sidebar-product-count">Loading...</span></p>
+                <p>⚡ Average Search Time: <span id="sidebar-avg-time">< 1ms</span></p>
+                <p>💰 Best Deals Found: 1,250+</p>
+                <p>👥 Happy Users: 5,000+</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Screen Overlay -->
+    <div class="welcome-overlay" id="welcome-overlay">
+        <div class="welcome-modal">
+            <h1>🛍️ SPricePedia</h1>
+            <p>Welcome to your ultimate product comparison platform!</p>
+            
+            
+            <p>Choose how to get started:</p>
+            
+            <!-- Option 1: Use Default Dataset -->
+            <div style="margin: 1rem 0;">
+                <div class="default-dataset-option" onclick="loadDefaultDataset()">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                    <p style="margin: 0 0 0.5rem 0; color: #ffffff; font-weight: bold;">Quick Start with Sample Data</p>
+                    <p style="margin: 0 0 1rem 0; color: #ffffff; font-size: 0.9rem;">Use our curated Shopee dataset</p>
+                    <button class="welcome-btn" id="default-dataset-btn" style="margin: 0; pointer-events: none;">Use Default Dataset 🚀</button>
+                </div>
+            </div>
+            
+            <!-- Divider -->
+            <div style="text-align: center; margin: 1.5rem 0; color: #ffffff; opacity: 0.7;">
+                <span style="background: linear-gradient(135deg, #EE4D2D 0%, #FF6533 100%); padding: 0 1rem;">OR</span>
+            </div>
+            
+            <!-- Option 2: Upload Custom CSV -->
+            <div style="margin: 1rem 0; text-align: left;">
+                <div class="upload-option" style="position: relative; padding: 1rem; text-align: center;">
+                    <input type="file" id="csvFileInput" accept=".csv" style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; left: 0; top: 0;">
+                    <div style="pointer-events: none;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+                        <p style="margin: 0; color: #ffffff; font-weight: bold;">Upload Your Own CSV File</p>
+                        <p style="margin: 0.5rem 0 0 0; color: #ffffff; font-size: 0.9rem;">Click here or drag and drop</p>
+                    </div>
+                </div>
+                <small style="color: #ffffff; display: block; margin-top: 0.5rem; text-align: center; opacity: 0.8;">Expected format: Selling Price, Delivery From, Item Category, Item Name, Item Rating, Seller Name, Actual Price</small>
+            </div>
+            
+            <div id="file-status" style="margin: 1rem 0; min-height: 1.5rem;"></div>
+            
+            <button class="welcome-btn" id="start-shopping-btn" onclick="handleFileUpload()" disabled style="opacity: 0.5;">Upload & Start Shopping 🚀</button>
+        </div>
+    </div>
+
+    <header class="header">
+        <h1>SPricePedia</h1>
+    </header>
+
+    <main class="container">
+        <div class="search-container" id="linear-search-container">
+            <h2>1st Product Search</h2>
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="linear-search-input" placeholder="Enter product name" autocomplete="off">
+                <div class="autocomplete-dropdown" id="linear-autocomplete"></div>
+            </div>
+            <button class="btn btn-search" id="linear-search-btn">Search</button>
+            <button class="btn btn-reset" id="linear-reset-btn">Reset</button>
+            <div class="results" id="linear-results">
+                <p>Results will be displayed here.</p>
+            </div>
+        </div>
+
+        <div class="search-container" id="binary-search-container">
+            <h2>2nd Product Search</h2>
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="binary-search-input" placeholder="Enter product name" autocomplete="off">
+                <div class="autocomplete-dropdown" id="binary-autocomplete"></div>
+            </div>
+            <button class="btn btn-search" id="binary-search-btn">Search</button>
+            <button class="btn btn-reset" id="binary-reset-btn">Reset</button>
+            <div class="results" id="binary-results">
+                <p>Results will be displayed here.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Comparison Section -->
+    <section class="comparison-section">
+        <div class="comparison-header">
+            <h2>Best Product Value</h2>
+            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Comparison results will appear here after searching above</p>
+        </div>
+        <div class="comparison-results" id="comparison-results">
+            <p>Search above to see price differences and delivery information.</p>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-header">
+            <h2>📊 Platform Statistics</h2>
+            <p>Real-time insights from SPricePedia</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🔍</div>
+                <div class="stat-number" id="stat-products">0</div>
+                <div class="stat-label">Products Available</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-number">0.5ms</div>
+                <div class="stat-label">Average Search Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-number">RM 2.5M</div>
+                <div class="stat-label">Total Savings Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number">15,000+</div>
+                <div class="stat-label">Happy Users</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1.2rem;">🛍️ SPricePedia</h3>
+                    <p style="margin: 0 0 1rem 0; opacity: 0.9; line-height: 1.6;">Your ultimate product comparison platform. Find the best deals, compare prices, and save money with our advanced search algorithms.</p>
+                    <p style="margin: 0; opacity: 0.8; font-size: 0.9rem;">📊 Dataset: <span id="dataset-size">0</span> products</p>
+                </div>
+                
+                <div>
+                    <h4 style="margin: 0 0 1rem 0; opacity: 0.9;">Quick Links</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <a href="https://shopee.com.my" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">🏪 Shopee Malaysia</a>
+                        <a href="https://help.shopee.com.my" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">❓ Help Centre</a>
+                        <a href="https://seller.shopee.com.my" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">🏪 Seller Centre</a>
+                        <a href="https://careers.shopee.com" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: opacity 0.3s ease;">💼 Careers</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin: 0 0 1rem 0; opacity: 0.9;">Follow Shopee</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                        <a href="https://www.facebook.com/ShopeeMY" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: all 0.3s ease;">📘 Facebook</a>
+                        <a href="https://www.instagram.com/shopee_my" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: all 0.3s ease;">📷 Instagram</a>
+                        <a href="https://twitter.com/ShopeeMY" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: all 0.3s ease;">🐦 Twitter</a>
+                        <a href="https://www.youtube.com/channel/UCZCIgN_kE3r3VX8_p0QD4hA" target="_blank" style="color: white; text-decoration: none; opacity: 0.8; transition: all 0.3s ease;">📺 YouTube</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="margin: 0 0 1rem 0; opacity: 0.9;">Features</h4>
+                    <div style="font-size: 0.9rem; opacity: 0.8; line-height: 1.6;">
+                        <p style="margin: 0.5rem 0;">🔍 Smart Search Algorithms</p>
+                        <p style="margin: 0.5rem 0;">💰 Real-time Price Comparison</p>
+                        <p style="margin: 0.5rem 0;">📦 Delivery Information</p>
+                        <p style="margin: 0.5rem 0;">⚡ Lightning Fast Results</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1.5rem; text-align: center; opacity: 0.8;">
+                <p style="margin: 0; font-size: 0.9rem;">© 2024 SPricePedia. Built for product comparison and price analysis. Data sourced from Shopee.</p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.7;">Made with ❤️ for smart shoppers everywhere</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Welcome screen functions
+        function closeWelcome() {
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.classList.add('hidden');
+            // Remove the element from DOM after animation completes
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+
+        // Global variables for CSV data processing
+        let products = [];
+        let sortedProducts = [];
+
+        // Load default dataset functionality
+        function loadDefaultDataset() {
+            updateFileStatus('Loading default dataset...', 'info');
+            
+            fetch('shopee.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(csvData => {
+                    loadDataFromFile(csvData);
+                })
+                .catch(error => {
+                    console.error('Error loading default dataset:', error);
+                    updateFileStatus('Error loading default dataset. Please try uploading your own CSV file.', 'error');
+                });
+        }
+
+        // File upload functionality
+        function handleFileUpload() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                updateFileStatus('Please select a file first.', 'error');
+                return;
+            }
+            
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                updateFileStatus('Please select a CSV file.', 'error');
+                return;
+            }
+            
+            updateFileStatus('Processing file...', 'info');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvData = e.target.result;
+                    loadDataFromFile(csvData);
+                } catch (error) {
+                    updateFileStatus('Error reading file: ' + error.message, 'error');
+                }
+            };
+            reader.onerror = function() {
+                updateFileStatus('Error reading file.', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        function updateFileStatus(message, type) {
+            const statusDiv = document.getElementById('file-status');
+            let color = '#666';
+            if (type === 'error') color = '#e74c3c';
+            if (type === 'success') color = '#27ae60';
+            if (type === 'info') color = '#3498db';
+            
+            statusDiv.innerHTML = `<p style="color: ${color}; margin: 0; font-size: 0.9rem;">${message}</p>`;
+        }
+
+        function parseCSV(data) {
+            const lines = data.split('\n').slice(1);
+            return lines.map(line => {
+                if (!line.trim()) return null;
+                
+                const result = [];
+                let inQuotes = false;
+                let currentField = '';
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(currentField.trim());
+                        currentField = '';
+                    } else {
+                        currentField += char;
+                    }
+                }
+                
+                result.push(currentField.trim()); // Add last field
+                
+                if (result.length < 4) return null; // Skip malformed lines
+                
+                return {
+                    price_ori: result[0] || '',
+                    delivery: result[1] || '',
+                    item_category_detail: result[2] || '',
+                    title: result[3] || '',
+                    item_rating: result[4] || '',
+                    seller_name: result[5] || '',
+                    price_actual: result[6] || ''
+                };
+            }).filter(p => p && p.title);
+        }
+
+        function loadDataFromFile(csvData) {
+            try {
+                products = parseCSV(csvData);
+                console.log('Loaded products:', products); // Debug log
+                
+                if (products.length === 0) {
+                    throw new Error('No valid products found in the CSV file');
+                }
+                
+                sortedProducts = [...products].sort((a, b) => a.title.localeCompare(b.title));
+                console.log('Sorted products:', sortedProducts); // Debug log
+                
+                const datasetSizeEl = document.getElementById('dataset-size');
+                if (datasetSizeEl) datasetSizeEl.textContent = products.length;
+                
+                // Update sidebar and stats
+                const sidebarCount = document.getElementById('sidebar-product-count');
+                const statProducts = document.getElementById('stat-products');
+                if (sidebarCount) sidebarCount.textContent = products.length.toLocaleString();
+                if (statProducts) statProducts.textContent = products.length.toLocaleString();
+                
+                // Determine which dataset was loaded
+                const isDefaultDataset = !document.getElementById('csvFileInput').files[0];
+                const datasetType = isDefaultDataset ? 'default dataset' : 'custom file';
+                updateFileStatus(`Successfully loaded ${products.length} products from ${datasetType}!`, 'success');
+                
+                // Close welcome screen after successful load
+                setTimeout(() => {
+                    closeWelcome();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error parsing CSV:', error);
+                updateFileStatus('Error parsing CSV: ' + error.message, 'error');
+                const linearResults = document.getElementById('linear-results');
+                const binaryResults = document.getElementById('binary-results');
+                if (linearResults) linearResults.innerHTML = '<p class="error">Could not load product data.</p>';
+                if (binaryResults) binaryResults.innerHTML = '<p class="error">Could not load product data.</p>';
+            }
+        }
+
+        // Close welcome screen when clicking outside the modal (only if data is loaded)
+        document.addEventListener('click', (e) => {
+            const overlay = document.getElementById('welcome-overlay');
+            const modal = document.querySelector('.welcome-modal');
+            // Only allow closing if products are loaded
+            if (overlay && e.target === overlay && !modal.contains(e.target) && products.length > 0) {
+                closeWelcome();
+            }
+        });
+
+        // Close welcome screen with Escape key (only if data is loaded)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('welcome-overlay');
+                // Only allow closing welcome screen if products are loaded
+                if (overlay && !overlay.classList.contains('hidden') && products.length > 0) {
+                    closeWelcome();
+                }
+                // Also close sidebar if open
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            }
+        });
+
+        // Sidebar functionality
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const hamburger = document.getElementById('hamburger-btn');
+            
+            sidebar.classList.add('open');
+            overlay.classList.add('show');
+            hamburger.classList.add('active');
+            document.body.classList.add('sidebar-open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const hamburger = document.getElementById('hamburger-btn');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+            hamburger.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        // Sidebar event listeners
+        document.getElementById('hamburger-btn').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+
+        document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const linearSearchContainer = document.getElementById('linear-search-container');
+            const binarySearchContainer = document.getElementById('binary-search-container');
+            const linearSearchInput = document.getElementById('linear-search-input');
+            const binarySearchInput = document.getElementById('binary-search-input');
+            const linearSearchBtn = document.getElementById('linear-search-btn');
+            const binarySearchBtn = document.getElementById('binary-search-btn');
+            const linearResetBtn = document.getElementById('linear-reset-btn');
+            const binaryResetBtn = document.getElementById('binary-reset-btn');
+            const linearResults = document.getElementById('linear-results');
+            const binaryResults = document.getElementById('binary-results');
+            const datasetSizeEl = document.getElementById('dataset-size');
+
+            // Comparison section elements
+            const comparisonResults = document.getElementById('comparison-results');
+
+            // Autocomplete elements
+            const linearAutocomplete = document.getElementById('linear-autocomplete');
+            const binaryAutocomplete = document.getElementById('binary-autocomplete');
+
+            let currentSearchQuery = ''; // Store the current search query for comparison
+            let selectedIndex = -1; // For keyboard navigation
+
+            function linearSearch(query) {
+                const startTime = performance.now();
+                let comparisons = 0;
+                let found = null;
+                const trimmedQuery = query.trim();
+
+                for (let i = 0; i < products.length; i++) {
+                    comparisons++;
+                    if (products[i].title && products[i].title.includes(trimmedQuery)) {
+                        found = products[i];
+                        break;
+                    }
+                }
+                const endTime = performance.now();
+                return { found, comparisons, time: endTime - startTime };
+            }
+
+            function binarySearch(query) {
+                console.log('Starting binary search for:', query); // Debug
+                console.log('First 3 sorted titles:', 
+                    sortedProducts.slice(0, 3).map(p => p.title)); // Debug
+                
+                const startTime = performance.now();
+                let comparisons = 0;
+                let found = null;
+                let left = 0;
+                let right = sortedProducts.length - 1;
+                const trimmedQuery = query.trim().toLowerCase(); // Normalize case
+
+                while (left <= right) {
+                    comparisons++;
+                    const mid = Math.floor((left + right) / 2);
+                    const midTitle = sortedProducts[mid].title.trim().toLowerCase(); // Normalize case
+                    
+                    console.log(`Comparison #${comparisons}:`, 
+                        `Searching for "${trimmedQuery}" vs "${midTitle}"`); // Debug
+
+                    if (midTitle.includes(trimmedQuery)) { // Use includes() for partial match
+                        found = sortedProducts[mid];
+                        break;
+                    } else if (midTitle < trimmedQuery) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+
+                const endTime = performance.now();
+                console.log('Binary search completed. Found:', !!found); // Debug
+                return { found, comparisons, time: endTime - startTime };
+            }
+            
+            function displayResults(container, resultsEl, result) {
+                container.classList.remove('active');
+                if (result.found) {
+                    resultsEl.innerHTML = `
+                        <p><strong>Product:</strong> ${result.found.title}</p>
+                        <p><strong>Price:</strong> ${result.found.price_actual}</p>
+                        <p><strong>Category:</strong> ${result.found.item_category_detail}</p>
+                        <p><strong>Rating:</strong> ${result.found.item_rating}</p>
+                        <p><strong>Seller:</strong> ${result.found.seller_name}</p>
+                        <p><strong>Delivery:</strong> ${result.found.delivery || 'Not specified'}</p>
+                        <hr>
+                        <p><strong>Execution Time:</strong> ${result.time.toFixed(4)} ms</p>
+                        <p><strong>Comparisons:</strong> ${result.comparisons}</p>
+                    `;
+                } else {
+                    resultsEl.innerHTML = '<p class="error">Product not found.</p>';
+                }
+            }
+
+            function resetUI() {
+                linearResults.innerHTML = '<p>Results will be displayed here.</p>';
+                binaryResults.innerHTML = '<p>Results will be displayed here.</p>';
+                linearSearchInput.value = '';
+                binarySearchInput.value = '';
+                linearSearchContainer.classList.remove('highlight-winner');
+                binarySearchContainer.classList.remove('highlight-winner');
+                
+                // Hide autocomplete dropdowns
+                linearAutocomplete.classList.remove('show');
+                binaryAutocomplete.classList.remove('show');
+                
+                // Reset comparison section
+                currentSearchQuery = '';
+                comparisonResults.innerHTML = '<p>Search above to see price differences and delivery information.</p>';
+            }
+
+            // Autocomplete functionality
+            function filterProducts(query) {
+                if (!query || query.length < 2) return [];
+                
+                const trimmedQuery = query.trim().toLowerCase();
+                return products.filter(product => 
+                    product.title && product.title.toLowerCase().includes(trimmedQuery)
+                ).slice(0, 10); // Limit to 10 results
+            }
+
+            function displayAutocomplete(dropdown, matchingProducts) {
+                if (matchingProducts.length === 0) {
+                    dropdown.innerHTML = '<div class="no-results">No products found</div>';
+                    dropdown.classList.add('show');
+                    return;
+                }
+
+                const html = matchingProducts.map((product, index) => `
+                    <div class="autocomplete-item" data-index="${index}" data-title="${product.title}">
+                        <div class="autocomplete-product-title">${product.title}</div>
+                        <div class="autocomplete-product-details">
+                            <span class="autocomplete-price">RM ${product.price_actual}</span> • 
+                            ${product.seller_name} • 
+                            Rating: ${product.item_rating}
+                        </div>
+                    </div>
+                `).join('');
+
+                dropdown.innerHTML = html;
+                dropdown.classList.add('show');
+                selectedIndex = -1;
+
+                // Add click event listeners to autocomplete items
+                dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const title = item.getAttribute('data-title');
+                        const inputField = dropdown === linearAutocomplete ? linearSearchInput : binarySearchInput;
+                        inputField.value = title;
+                        dropdown.classList.remove('show');
+                    });
+                });
+            }
+
+            function hideAutocomplete(dropdown) {
+                dropdown.classList.remove('show');
+                selectedIndex = -1;
+            }
+
+            function handleKeyboardNavigation(e, dropdown, input) {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        const title = items[selectedIndex].getAttribute('data-title');
+                        input.value = title;
+                        hideAutocomplete(dropdown);
+                    }
+                } else if (e.key === 'Escape') {
+                    hideAutocomplete(dropdown);
+                }
+            }
+
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+            
+            linearSearchBtn.addEventListener('click', () => {
+                const query = linearSearchInput.value.trim();
+                if (!query) {
+                    linearResults.innerHTML = '<p class="error">Please enter a product name.</p>';
+                    return;
+                }
+                currentSearchQuery = query; // Store query for comparison
+                linearSearchContainer.classList.add('active');
+                setTimeout(() => {
+                    const result = linearSearch(query);
+                    displayResults(linearSearchContainer, linearResults, result);
+                    comparePerformance();
+                    // Automatically trigger comparison
+                    if (result.found) {
+                        const comparison = compareProducts(query);
+                        displayComparisonResults(comparison);
+                    }
+                }, 50);
+            });
+
+            binarySearchBtn.addEventListener('click', () => {
+                const query = binarySearchInput.value.trim();
+                if (!query) {
+                    binaryResults.innerHTML = '<p class="error">Please enter a product name.</p>';
+                    return;
+                }
+                currentSearchQuery = query; // Store query for comparison
+                binarySearchContainer.classList.add('active');
+                setTimeout(() => {
+                    const result = binarySearch(query);
+                    displayResults(binarySearchContainer, binaryResults, result);
+                    comparePerformance();
+                    // Automatically trigger comparison
+                    if (result.found) {
+                        const comparison = compareProducts(query);
+                        displayComparisonResults(comparison);
+                    }
+                }, 50);
+            });
+
+            linearResetBtn.addEventListener('click', resetUI);
+            binaryResetBtn.addEventListener('click', resetUI);
+
+            // Autocomplete event listeners for Linear Search
+            linearSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value;
+                if (query.length >= 2) {
+                    const matchingProducts = filterProducts(query);
+                    displayAutocomplete(linearAutocomplete, matchingProducts);
+                } else {
+                    hideAutocomplete(linearAutocomplete);
+                }
+            });
+
+            linearSearchInput.addEventListener('keydown', (e) => {
+                handleKeyboardNavigation(e, linearAutocomplete, linearSearchInput);
+            });
+
+            linearSearchInput.addEventListener('blur', () => {
+                // Hide dropdown after a short delay to allow clicking on items
+                setTimeout(() => hideAutocomplete(linearAutocomplete), 150);
+            });
+
+            linearSearchInput.addEventListener('focus', () => {
+                const query = linearSearchInput.value;
+                if (query.length >= 2) {
+                    const matchingProducts = filterProducts(query);
+                    displayAutocomplete(linearAutocomplete, matchingProducts);
+                }
+            });
+
+            // Autocomplete event listeners for Binary Search
+            binarySearchInput.addEventListener('input', (e) => {
+                const query = e.target.value;
+                if (query.length >= 2) {
+                    const matchingProducts = filterProducts(query);
+                    displayAutocomplete(binaryAutocomplete, matchingProducts);
+                } else {
+                    hideAutocomplete(binaryAutocomplete);
+                }
+            });
+
+            binarySearchInput.addEventListener('keydown', (e) => {
+                handleKeyboardNavigation(e, binaryAutocomplete, binarySearchInput);
+            });
+
+            binarySearchInput.addEventListener('blur', () => {
+                // Hide dropdown after a short delay to allow clicking on items
+                setTimeout(() => hideAutocomplete(binaryAutocomplete), 150);
+            });
+
+            binarySearchInput.addEventListener('focus', () => {
+                const query = binarySearchInput.value;
+                if (query.length >= 2) {
+                    const matchingProducts = filterProducts(query);
+                    displayAutocomplete(binaryAutocomplete, matchingProducts);
+                }
+            });
+
+            // Hide autocomplete when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!linearSearchInput.contains(e.target) && !linearAutocomplete.contains(e.target)) {
+                    hideAutocomplete(linearAutocomplete);
+                }
+                if (!binarySearchInput.contains(e.target) && !binaryAutocomplete.contains(e.target)) {
+                    hideAutocomplete(binaryAutocomplete);
+                }
+            });
+            
+            function comparePerformance() {
+                const linearTimeStr = linearResults.querySelector('p:nth-child(4)');
+                const binaryTimeStr = binaryResults.querySelector('p:nth-child(4)');
+
+                if (linearTimeStr && binaryTimeStr) {
+                    const linearTime = parseFloat(linearTimeStr.textContent.split(' ')[2]);
+                    const binaryTime = parseFloat(binaryTimeStr.textContent.split(' ')[2]);
+
+                    linearSearchContainer.classList.remove('highlight-winner');
+                    binarySearchContainer.classList.remove('highlight-winner');
+
+                    if (linearTime < binaryTime) {
+                        linearSearchContainer.classList.add('highlight-winner');
+                    } else if (binaryTime < linearTime) {
+                        binarySearchContainer.classList.add('highlight-winner');
+                    }
+                }
+            }
+
+            function compareProducts(query) {
+                const trimmedQuery = query.trim().toLowerCase();
+                const matchingProducts = products.filter(product => 
+                    product.title && product.title.toLowerCase().includes(trimmedQuery)
+                ).slice(0, 10); // Limit to first 10 matches
+
+                if (matchingProducts.length === 0) {
+                    return { found: false, message: 'No products found matching your search.' };
+                }
+
+                // Calculate price differences
+                const analysisResults = matchingProducts.map(product => {
+                    const priceOri = parseFloat(product.price_ori) || 0;
+                    const priceActual = parseFloat(product.price_actual) || 0;
+                    const priceDifference = priceActual - priceOri; // actual price - original price
+                    
+                    // Check if delivery mentions Perak or has delivery info
+                    const deliveryInfo = product.delivery || '';
+                    const isPerakDelivery = deliveryInfo.toLowerCase().includes('perak') || 
+                                          deliveryInfo.toLowerCase().includes('free shipping') ||
+                                          deliveryInfo.trim() !== '';
+                    
+                    // Estimate delivery speed (this is a simplified logic)
+                    let deliverySpeed = 'Unknown';
+                    if (deliveryInfo.toLowerCase().includes('express')) deliverySpeed = 'Express (1-2 days)';
+                    else if (deliveryInfo.toLowerCase().includes('fast')) deliverySpeed = 'Fast (2-3 days)';
+                    else if (deliveryInfo.toLowerCase().includes('free')) deliverySpeed = 'Standard (3-7 days)';
+                    else if (deliveryInfo.trim()) deliverySpeed = 'Standard (3-7 days)';
+
+                    return {
+                        ...product,
+                        priceDifference,
+                        isPerakDelivery,
+                        deliverySpeed,
+                        deliveryInfo: deliveryInfo || 'No delivery info available'
+                    };
+                });
+
+                // Find product with highest savings (actual price - original price = savings)
+                const bestSavings = analysisResults.reduce((best, current) => 
+                    current.priceDifference > best.priceDifference ? current : best, analysisResults[0]);
+
+                return {
+                    found: true,
+                    bestSavings,
+                    totalMatches: matchingProducts.length
+                };
+            }
+
+            function displayComparisonResults(comparison) {
+                if (!comparison.found) {
+                    comparisonResults.innerHTML = `<p class="error">${comparison.message}</p>`;
+                    return;
+                }
+
+                const savings = comparison.bestSavings.priceDifference; // actual price - original price
+                const priceDisplayClass = savings > 0 ? 'savings' : 'markup';
+                const priceDisplayText = savings > 0 ? `💰 Savings: RM ${savings.toFixed(2)}` : `⚠️ Loss: RM ${Math.abs(savings).toFixed(2)}`;
+                
+                let html = `
+                    <div class="comparison-card best-price">
+                        <h4>🏆 Best Value Product</h4>
+                        <p><strong>Product:</strong> ${comparison.bestSavings.title}</p>
+                        <p><strong>Original Price:</strong> RM ${comparison.bestSavings.price_ori}</p>
+                        <p><strong>Actual Price:</strong> RM ${comparison.bestSavings.price_actual}</p>
+                        <p class="price-difference ${priceDisplayClass}">${priceDisplayText}</p>
+                        <p class="delivery-info">📦 Delivery: ${comparison.bestSavings.deliveryInfo}</p>
+                        <p><strong>Seller:</strong> ${comparison.bestSavings.seller_name}</p>
+                        <p><strong>Rating:</strong> ${comparison.bestSavings.item_rating}</p>
+                        <p><strong>Delivery Speed:</strong> ${comparison.bestSavings.deliverySpeed}</p>
+                    </div>
+                `;
+
+                comparisonResults.innerHTML = html;
+            }
+
+            // Add event listener for file input
+            const csvFileInput = document.getElementById('csvFileInput');
+            const startShoppingBtn = document.getElementById('start-shopping-btn');
+            
+            csvFileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    startShoppingBtn.disabled = false;
+                    startShoppingBtn.style.opacity = '1';
+                    updateFileStatus(`File selected: ${this.files[0].name}`, 'info');
+                } else {
+                    startShoppingBtn.disabled = true;
+                    startShoppingBtn.style.opacity = '0.5';
+                    updateFileStatus('', '');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
