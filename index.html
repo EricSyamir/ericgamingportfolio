@@ -939,8 +939,17 @@
 
     /* Mobile Responsiveness */
     @media (max-width: 900px) {
-      .instructions, .profile-card {
+      .profile-card {
         display: none;
+      }
+      
+      /* Show instructions panel collapsed on mobile (just the toggle button) */
+      .instructions {
+        display: block;
+      }
+      
+      .instructions:not(.collapsed) {
+        /* Auto-collapse on mobile unless user expands it */
       }
 
       .game-header {
