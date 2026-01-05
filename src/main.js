@@ -16,11 +16,11 @@ k.loadSprite("spritesheet", "./spritesheet.png", {
   anims: {
     ...selectedChar.anims,
     // Slime animations
-    "slime-idle": 900,
-    "slime-move": { from: 900, to: 900, loop: true, speed: 6 },
+    "slime-idle": 858,
+    "slime-move": { from: 858, to: 859, loop: true, speed: 6 },
     // Sword animations (swords in spritesheet around tile 230-250 area)
-    "sword-swing-down": { from: 234, to: 237, loop: false, speed: 15 },
-    "sword-swing-side": { from: 273, to: 276, loop: false, speed: 15 },
+    "sword-swing-down": { from: 1009, to: 1011, loop: false, speed: 15 },
+    "sword-swing-side": { from: 1009, to: 1011, loop: false, speed: 15 },
     "sword-swing-up": { from: 312, to: 315, loop: false, speed: 15 },
   },
 });
@@ -279,12 +279,13 @@ k.scene("main", async () => {
         fixed: true,
       });
       
-      // Draw score text (using system font that's pixelated)
+      // Draw score text (using monospace font to match other UI elements)
       k.drawText({
         text: scoreText,
         pos: k.vec2(barX + 10, scoreY + 8),
         size: 10,
         color: k.rgb(255, 215, 0),
+        font: "monospace",
         fixed: true,
       });
       
@@ -330,12 +331,13 @@ k.scene("main", async () => {
         fixed: true,
       });
       
-      // Health text (using system font)
+      // Health text (using monospace font to match other UI elements)
       k.drawText({
         text: `❤️ ${Math.ceil(player.combat.health)} / ${player.combat.maxHealth}`,
         pos: k.vec2(barX + 10, barY + 5),
         size: 10,
         color: k.rgb(255, 255, 255),
+        font: "monospace",
         fixed: true,
       });
     }
