@@ -425,10 +425,12 @@ k.scene("main", async () => {
       isInCombatZone = true;
       enemySpawner.activate();
       showCombatAlert("DANGER ZONE: Enemies Ahead!");
+      soundManager.playCombatMusic();
     } else if (!inZone && isInCombatZone) {
       isInCombatZone = false;
       enemySpawner.deactivate();
       showCombatAlert("Safe Zone");
+      soundManager.playBackgroundMusic();
     }
   }
   

@@ -3,7 +3,11 @@ class SoundManager {
   constructor() {
     this.audioContext = null;
     this.enabled = true;
+    this.backgroundMusic = null;
+    this.combatMusic = null;
+    this.currentMusic = null;
     this.initAudioContext();
+    this.initMusic();
   }
 
   initAudioContext() {
@@ -95,6 +99,80 @@ class SoundManager {
   // Movement sound (optional, can be called on key press)
   playMove() {
     this.playBeep(300, 0.05, 'sine', 0.1);
+  }
+
+  // Initialize music audio elements
+  initMusic() {
+    // Background music
+    this.backgroundMusic = new Audio("./Beneath the Mask -instrumental version-.mp3");
+    this.backgroundMusic.loop = true;
+    this.backgroundMusic.volume = 0.5;
+    this.backgroundMusic.preload = "auto";
+
+    // Combat music
+    this.combatMusic = new Audio("./Last Surprise -Scramble-.mp3");
+    this.combatMusic.loop = true;
+    this.combatMusic.volume = 0.5;
+    this.combatMusic.preload = "auto";
+
+    // Handle errors
+    this.backgroundMusic.addEventListener('error', (e) => {
+      console.warn('Background music failed to load:', e);
+    });
+    this.combatMusic.addEventListener('error', (e) => {
+      console.warn('Combat music failed to load:', e);
+    });
+  }
+
+  // Play background music
+  playBackgroundMusic() {
+    if (!this.backgroundMusic) return;
+    
+    // Stop combat music if playing
+    if (this.combatMusic && !this.combatMusic.paused) {
+      this.combatMusic.pause();
+      this.combatMusic.currentTime = 0;
+    }
+
+    // Play background music
+    if (this.backgroundMusic.paused || this.backgroundMusic.ended) {
+      this.backgroundMusic.play().catch(e => {
+        console.warn('Failed to play background music:', e);
+      });
+    }
+    this.currentMusic = this.backgroundMusic;
+  }
+
+  // Play combat music
+  playCombatMusic() {
+    if (!this.combatMusic) return;
+    
+    // Stop background music if playing
+    if (this.backgroundMusic && !this.backgroundMusic.paused) {
+      this.backgroundMusic.pause();
+      this.backgroundMusic.currentTime = 0;
+    }
+
+    // Play combat music
+    if (this.combatMusic.paused || this.combatMusic.ended) {
+      this.combatMusic.play().catch(e => {
+        console.warn('Failed to play combat music:', e);
+      });
+    }
+    this.currentMusic = this.combatMusic;
+  }
+
+  // Stop all music
+  stopAllMusic() {
+    if (this.backgroundMusic) {
+      this.backgroundMusic.pause();
+      this.backgroundMusic.currentTime = 0;
+    }
+    if (this.combatMusic) {
+      this.combatMusic.pause();
+      this.combatMusic.currentTime = 0;
+    }
+    this.currentMusic = null;
   }
 }
 
