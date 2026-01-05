@@ -104,6 +104,7 @@ export class PlayerCombat {
     const respawnModal = document.getElementById("respawnModal");
     const finalScoreEl = document.getElementById("finalScore");
     const nameInput = document.getElementById("playerNameInput");
+    const leaderboardContainer = document.getElementById("leaderboard");
     
     if (respawnModal) {
       if (finalScoreEl) {
@@ -112,6 +113,14 @@ export class PlayerCombat {
       if (nameInput) {
         nameInput.value = "";
         nameInput.focus();
+        // Show name input container
+        if (nameInput.parentElement) {
+          nameInput.parentElement.style.display = "block";
+        }
+      }
+      // Hide leaderboard (will show after name is entered)
+      if (leaderboardContainer) {
+        leaderboardContainer.classList.add("hidden");
       }
       respawnModal.classList.remove("hidden");
     }
