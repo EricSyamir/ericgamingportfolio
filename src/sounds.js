@@ -124,42 +124,84 @@ class SoundManager {
     });
   }
 
-  // Play background music
+  // Fade out audio smoothly
+  fadeOutAudio(audio, duration = 500, callback) {
+    if (!audio) {
+      if (callback) callback();
+      return;
+    }
+    
+    const startVolume = audio.volume;
+    const fadeStep = startVolume / (duration / 50); // Update every 50ms
+    const fadeInterval = setInterval(() => {
+      if (audio.volume > 0) {
+        audio.volume = Math.max(0, audio.volume - fadeStep);
+      } else {
+        clearInterval(fadeInterval);
+        audio.pause();
+        audio.currentTime = 0;
+        if (callback) callback();
+      }
+    }, 50);
+  }
+
+  // Fade in audio smoothly
+  fadeInAudio(audio, targetVolume, duration = 500) {
+    if (!audio) return;
+    
+    audio.volume = 0;
+    const fadeStep = targetVolume / (duration / 50); // Update every 50ms
+    
+    if (audio.paused || audio.ended) {
+      audio.play().catch(e => {
+        console.warn('Failed to play audio:', e);
+      });
+    }
+    
+    const fadeInterval = setInterval(() => {
+      if (audio.volume < targetVolume) {
+        audio.volume = Math.min(targetVolume, audio.volume + fadeStep);
+      } else {
+        clearInterval(fadeInterval);
+        audio.volume = targetVolume;
+      }
+    }, 50);
+  }
+
+  // Play background music with smooth transition
   playBackgroundMusic() {
     if (!this.backgroundMusic) return;
     
-    // Stop combat music if playing
+    // If combat music is playing, fade it out first
     if (this.combatMusic && !this.combatMusic.paused) {
-      this.combatMusic.pause();
-      this.combatMusic.currentTime = 0;
-    }
-
-    // Play background music
-    if (this.backgroundMusic.paused || this.backgroundMusic.ended) {
-      this.backgroundMusic.play().catch(e => {
-        console.warn('Failed to play background music:', e);
+      this.fadeOutAudio(this.combatMusic, 500, () => {
+        // After combat music fades out, fade in background music
+        this.fadeInAudio(this.backgroundMusic, 0.5, 500);
+        this.currentMusic = this.backgroundMusic;
       });
+    } else {
+      // No music playing, just fade in background music
+      this.fadeInAudio(this.backgroundMusic, 0.5, 500);
+      this.currentMusic = this.backgroundMusic;
     }
-    this.currentMusic = this.backgroundMusic;
   }
 
-  // Play combat music
+  // Play combat music with smooth transition
   playCombatMusic() {
     if (!this.combatMusic) return;
     
-    // Stop background music if playing
+    // If background music is playing, fade it out first
     if (this.backgroundMusic && !this.backgroundMusic.paused) {
-      this.backgroundMusic.pause();
-      this.backgroundMusic.currentTime = 0;
-    }
-
-    // Play combat music
-    if (this.combatMusic.paused || this.combatMusic.ended) {
-      this.combatMusic.play().catch(e => {
-        console.warn('Failed to play combat music:', e);
+      this.fadeOutAudio(this.backgroundMusic, 500, () => {
+        // After background music fades out, fade in combat music
+        this.fadeInAudio(this.combatMusic, 0.3, 500);
+        this.currentMusic = this.combatMusic;
       });
+    } else {
+      // No music playing, just fade in combat music
+      this.fadeInAudio(this.combatMusic, 0.3, 500);
+      this.currentMusic = this.combatMusic;
     }
-    this.currentMusic = this.combatMusic;
   }
 
   // Stop all music
