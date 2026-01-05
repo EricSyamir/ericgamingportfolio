@@ -432,7 +432,85 @@
     function getSpritePosition(index) {
       const row = Math.floor(index / SPRITESHEET_COLS);
       const col = index % SPRITESHEET_COLS;
-      return { row, col, x: col * SPRITESHEET_SIZE, y: row * SPRITESHEET_SIZE };
+      return { row, col, x: col * SPRITE_SIZE, y: row * SPRITE_SIZE };
+    }
+
+    // Get sprite index from canvas coordinates
+    function getSpriteIndexFromCoords(x, y) {
+      const col = Math.floor(x / SPRITE_SIZE);
+      const row = Math.floor(y / SPRITE_SIZE);
+      const index = row * SPRITESHEET_COLS + col;
+      if (index >= 0 && index < TOTAL_SPRITES) {
+        return index;
+      }
+      return null;
+    }
+
+    // Get canvas coordinates from mouse event
+    function getCanvasCoords(e) {
+      const rect = spritesheetCanvas.getBoundingClientRect();
+      const scaleX = spritesheetCanvas.width / rect.width;
+      const scaleY = spritesheetCanvas.height / rect.height;
+      const x = Math.floor((e.clientX - rect.left) * scaleX);
+      const y = Math.floor((e.clientY - rect.top) * scaleY);
+      return { x, y };
+    }
+
+    // Auto-fit canvas to container
+    function autoFitCanvas() {
+      const container = spritesheetCanvas.parentElement;
+      const maxWidth = container.clientWidth - 40;
+      const maxHeight = container.clientHeight - 40;
+      
+      if (spritesheet.width && spritesheet.height) {
+        const scaleX = maxWidth / spritesheet.width;
+        const scaleY = maxHeight / spritesheet.height;
+        const scale = Math.min(scaleX, scaleY, 4); // Max 4x zoom
+        
+        spritesheetCanvas.style.width = (spritesheet.width * scale) + 'px';
+        spritesheetCanvas.style.height = (spritesheet.height * scale) + 'px';
+      }
+    }
+
+    // Render spritesheet with selection highlight
+    function renderSpritesheet() {
+      spritesheetCtx.clearRect(0, 0, spritesheetCanvas.width, spritesheetCanvas.height);
+      
+      // Draw spritesheet
+      spritesheetCtx.imageSmoothingEnabled = false;
+      spritesheetCtx.drawImage(spritesheet, 0, 0);
+      
+      // Draw grid
+      spritesheetCtx.strokeStyle = 'rgba(102, 126, 234, 0.2)';
+      spritesheetCtx.lineWidth = 1;
+      for (let x = 0; x <= spritesheetCanvas.width; x += SPRITE_SIZE) {
+        spritesheetCtx.beginPath();
+        spritesheetCtx.moveTo(x, 0);
+        spritesheetCtx.lineTo(x, spritesheetCanvas.height);
+        spritesheetCtx.stroke();
+      }
+      for (let y = 0; y <= spritesheetCanvas.height; y += SPRITE_SIZE) {
+        spritesheetCtx.beginPath();
+        spritesheetCtx.moveTo(0, y);
+        spritesheetCtx.lineTo(spritesheetCanvas.width, y);
+        spritesheetCtx.stroke();
+      }
+      
+      // Draw selection highlight
+      if (selectedIndex !== null) {
+        const pos = getSpritePosition(selectedIndex);
+        spritesheetCtx.strokeStyle = '#ffd700';
+        spritesheetCtx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+        spritesheetCtx.lineWidth = 3;
+        spritesheetCtx.fillRect(pos.x, pos.y, SPRITE_SIZE, SPRITE_SIZE);
+        spritesheetCtx.strokeRect(pos.x, pos.y, SPRITE_SIZE, SPRITE_SIZE);
+        
+        // Draw index number
+        spritesheetCtx.fillStyle = '#ffd700';
+        spritesheetCtx.font = 'bold 10px monospace';
+        spritesheetCtx.textAlign = 'center';
+        spritesheetCtx.fillText(selectedIndex.toString(), pos.x + SPRITE_SIZE / 2, pos.y + SPRITE_SIZE / 2 + 3);
+      }
     }
 
     // Create sprite image from spritesheet
@@ -459,6 +537,20 @@
       // Just render the spritesheet canvas
       renderSpritesheet();
     }
+
+    // Handle canvas click
+    spritesheetCanvas.addEventListener('click', (e) => {
+      const coords = getCanvasCoords(e);
+      const index = getSpriteIndexFromCoords(coords.x, coords.y);
+      if (index !== null) {
+        selectSprite(index);
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      autoFitCanvas();
+    });
 
     // Select a sprite
     function selectSprite(index) {
