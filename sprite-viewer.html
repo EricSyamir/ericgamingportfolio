@@ -67,6 +67,10 @@
       border-radius: 8px;
     }
 
+    .controls .search-box {
+      display: none; /* Hide search for now since we're using canvas selection */
+    }
+
     .search-box {
       flex: 1;
       min-width: 200px;
@@ -126,6 +130,8 @@
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
     }
 
     .info-bar {
@@ -138,6 +144,29 @@
       color: var(--text-muted);
     }
 
+    .spritesheet-canvas-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      overflow: auto;
+      min-height: 400px;
+    }
+
+    #spritesheetCanvas {
+      border: 3px solid var(--primary);
+      cursor: crosshair;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+      max-width: 100%;
+      max-height: calc(100vh - 400px);
+    }
+
     .sprite-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
@@ -147,6 +176,7 @@
       padding: 10px;
       background: rgba(0, 0, 0, 0.2);
       border-radius: 8px;
+      display: none; /* Hide grid view, use canvas instead */
     }
 
     .sprite-grid::-webkit-scrollbar {
@@ -320,8 +350,12 @@
     <div class="sprite-grid-container">
       <div class="info-bar">
         <span>Total Sprites: <strong id="totalSprites">1209</strong></span> | 
-        <span>Showing: <strong id="showingCount">1209</strong></span> | 
-        <span>Selected: <strong id="selectedIndex">-</strong></span>
+        <span>Selected: <strong id="selectedIndex">-</strong></span> | 
+        <span>Row: <strong id="selectedRow">-</strong></span> | 
+        <span>Col: <strong id="selectedCol">-</strong></span>
+      </div>
+      <div class="spritesheet-canvas-area">
+        <canvas id="spritesheetCanvas"></canvas>
       </div>
       <div class="sprite-grid" id="spriteGrid"></div>
     </div>
@@ -348,14 +382,18 @@
     let SPRITE_SIZE = 16; // Will be calculated from image dimensions
 
     let selectedIndex = null;
-    let currentZoom = 2;
+    let currentZoom = 1;
     let filteredSprites = [];
 
     const spriteGrid = document.getElementById('spriteGrid');
+    const spritesheetCanvas = document.getElementById('spritesheetCanvas');
+    const spritesheetCtx = spritesheetCanvas.getContext('2d');
     const previewDisplay = document.getElementById('previewDisplay');
     const previewInfo = document.getElementById('previewInfo');
     const searchBox = document.getElementById('searchBox');
     const selectedIndexSpan = document.getElementById('selectedIndex');
+    const selectedRowSpan = document.getElementById('selectedRow');
+    const selectedColSpan = document.getElementById('selectedCol');
     const showingCountSpan = document.getElementById('showingCount');
     const infoIndex = document.getElementById('infoIndex');
     const infoRow = document.getElementById('infoRow');
@@ -371,6 +409,18 @@
     spritesheet.onload = () => {
       // Calculate sprite size from image dimensions
       SPRITE_SIZE = Math.floor(spritesheet.width / SPRITESHEET_COLS);
+      
+      // Set canvas size to match spritesheet
+      spritesheetCanvas.width = spritesheet.width;
+      spritesheetCanvas.height = spritesheet.height;
+      
+      // Draw spritesheet on canvas
+      spritesheetCtx.imageSmoothingEnabled = false;
+      spritesheetCtx.drawImage(spritesheet, 0, 0);
+      
+      // Auto-fit canvas
+      autoFitCanvas();
+      
       renderSprites();
     };
 
@@ -404,39 +454,21 @@
       return canvas.toDataURL();
     }
 
-    // Render all sprites
+    // Render all sprites (legacy grid view, not used but kept for compatibility)
     function renderSprites() {
-      spriteGrid.innerHTML = '';
-      const spritesToShow = filteredSprites.length > 0 ? filteredSprites : Array.from({ length: TOTAL_SPRITES }, (_, i) => i);
-      showingCountSpan.textContent = spritesToShow.length;
-
-      spritesToShow.forEach(index => {
-        const spriteItem = document.createElement('div');
-        spriteItem.className = 'sprite-item';
-        if (selectedIndex === index) {
-          spriteItem.classList.add('selected');
-        }
-
-        const spriteImg = document.createElement('img');
-        spriteImg.src = createSpriteImage(index, currentZoom);
-        spriteImg.alt = `Sprite ${index}`;
-
-        const spriteIndex = document.createElement('div');
-        spriteIndex.className = 'sprite-index';
-        spriteIndex.textContent = index;
-
-        spriteItem.appendChild(spriteImg);
-        spriteItem.appendChild(spriteIndex);
-
-        spriteItem.addEventListener('click', () => selectSprite(index));
-        spriteGrid.appendChild(spriteItem);
-      });
+      // Just render the spritesheet canvas
+      renderSpritesheet();
     }
 
     // Select a sprite
     function selectSprite(index) {
       selectedIndex = index;
+      const pos = getSpritePosition(index);
+      
+      // Update info bar
       selectedIndexSpan.textContent = index;
+      selectedRowSpan.textContent = pos.row;
+      selectedColSpan.textContent = pos.col;
 
       // Update preview
       const previewImg = document.createElement('img');
@@ -445,22 +477,15 @@
       previewDisplay.innerHTML = '';
       previewDisplay.appendChild(previewImg);
 
-      // Update info
-      const pos = getSpritePosition(index);
+      // Update preview info
       infoIndex.textContent = index;
       infoRow.textContent = pos.row;
       infoCol.textContent = pos.col;
       infoPos.textContent = `(${pos.x}, ${pos.y})`;
       previewInfo.style.display = 'block';
 
-      // Update selected state in grid
-      renderSprites();
-      
-      // Scroll to selected sprite
-      const selectedItem = spriteGrid.querySelector(`.sprite-item:nth-child(${filteredSprites.length > 0 ? filteredSprites.indexOf(index) + 1 : index + 1})`);
-      if (selectedItem) {
-        selectedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      // Re-render spritesheet with highlight
+      renderSpritesheet();
     }
 
     // Copy index to clipboard
@@ -513,10 +538,14 @@
         btn.classList.remove('active');
       });
       document.getElementById(`zoom${zoom}x`).classList.add('active');
-      renderSprites();
-      if (selectedIndex !== null) {
-        selectSprite(selectedIndex);
+      
+      // Apply zoom to canvas
+      if (spritesheet.width && spritesheet.height) {
+        spritesheetCanvas.style.width = (spritesheet.width * zoom) + 'px';
+        spritesheetCanvas.style.height = (spritesheet.height * zoom) + 'px';
       }
+      
+      renderSpritesheet();
     }
 
     // Keyboard navigation
