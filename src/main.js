@@ -21,7 +21,7 @@ k.loadSprite("spritesheet", "./spritesheet.png", {
     // Sword animations (swords in spritesheet around tile 230-250 area)
     "sword-swing-down": { from: 1009, to: 1011, loop: false, speed: 15 },
     "sword-swing-side": { from: 1009, to: 1011, loop: false, speed: 15 },
-    "sword-swing-up": { from: 312, to: 315, loop: false, speed: 15 },
+    "sword-swing-up": { from: 1009, to: 1011, loop: false, speed: 15 },
   },
 });
 
@@ -554,16 +554,80 @@ k.scene("main", async () => {
     const topScores = scores.slice(0, 10);
     
     localStorage.setItem("portfolioScores", JSON.stringify(topScores));
+    return topScores;
   }
+  
+  // Display leaderboard
+  function displayLeaderboard() {
+    const leaderboardContainer = document.getElementById("leaderboard");
+    const leaderboardList = document.getElementById("leaderboardList");
+    
+    if (!leaderboardContainer || !leaderboardList) return;
+    
+    const scores = JSON.parse(localStorage.getItem("portfolioScores") || "[]");
+    
+    if (scores.length === 0) {
+      leaderboardList.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 8px;">No scores yet. Be the first!</p>';
+    } else {
+      leaderboardList.innerHTML = scores.map((entry, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+        return `
+          <div class="leaderboard-item ${rankClass}">
+            <span class="leaderboard-rank">#${rank}</span>
+            <span class="leaderboard-name">${entry.name}</span>
+            <span class="leaderboard-score">${entry.score}</span>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    leaderboardContainer.classList.remove("hidden");
+  }
+  
+  // Track if score has been saved (to show leaderboard after name entry)
+  let scoreSaved = false;
   
   // Respawn function
   function handleRespawn() {
     if (player.combat.isDead) {
-      // Save score before respawning
       const nameInput = document.getElementById("playerNameInput");
-      const playerName = nameInput ? nameInput.value : "Player";
-      saveScore(playerName, player.combat.score);
+      const leaderboardContainer = document.getElementById("leaderboard");
       
+      // First time: save score and show leaderboard
+      if (!scoreSaved) {
+        const playerName = nameInput ? nameInput.value : "Player";
+        saveScore(playerName, player.combat.score);
+        
+        // Hide name input
+        if (nameInput && nameInput.parentElement) {
+          nameInput.parentElement.style.display = "none";
+        }
+        
+        // Show leaderboard
+        displayLeaderboard();
+        scoreSaved = true;
+        
+        // Update respawn button text
+        const respawnBtn = document.getElementById("respawnBtn");
+        if (respawnBtn) {
+          respawnBtn.textContent = "🔄 RESPAWN";
+        }
+        return;
+      }
+      
+      // Second time: actually respawn
+      if (leaderboardContainer) {
+        leaderboardContainer.classList.add("hidden");
+      }
+      
+      // Show name input again for next death
+      if (nameInput && nameInput.parentElement) {
+        nameInput.parentElement.style.display = "block";
+        nameInput.value = "";
+      }
+      
+      scoreSaved = false;
       player.combat.respawn();
       player.combat.score = 0; // Reset score on respawn
       enemySpawner.clear();

@@ -16,7 +16,7 @@ export const COMBAT_CONFIG = {
   slimeAttackRange: 20,
   slimeAttackCooldown: 1.5,
   
-  respawnTime: 5, // seconds
+  respawnTime: 3.5, // seconds
   maxSlimes: 8,
 };
 
@@ -135,11 +135,20 @@ export class PlayerCombat {
 
 // Slime enemy class
 export class Slime {
-  constructor(pos, scaleFactor, combatZones = []) {
+  constructor(pos, scaleFactor, combatZones = [], playerScore = 0) {
     this.scaleFactor = scaleFactor;
     this.combatZones = combatZones; // Zones to constrain movement
-    this.health = COMBAT_CONFIG.slimeMaxHealth;
-    this.maxHealth = COMBAT_CONFIG.slimeMaxHealth;
+    
+    // Scale difficulty based on player score
+    const difficultyMultiplier = 1 + (playerScore / 500);
+    const scaledHealth = Math.floor(COMBAT_CONFIG.slimeMaxHealth * difficultyMultiplier);
+    const scaledDamage = Math.floor(COMBAT_CONFIG.slimeAttackDamage * difficultyMultiplier);
+    const scaledSpeed = COMBAT_CONFIG.slimeSpeed * difficultyMultiplier;
+    
+    this.health = scaledHealth;
+    this.maxHealth = scaledHealth;
+    this.attackDamage = scaledDamage;
+    this.speed = scaledSpeed;
     this.canAttack = true;
     this.isDead = false;
     this.target = null;
@@ -184,9 +193,9 @@ export class Slime {
         return;
       }
       
-      // Move towards player
+      // Move towards player (use scaled speed)
       const direction = player.pos.sub(this.entity.pos).unit();
-      const moveAmount = COMBAT_CONFIG.slimeSpeed * this.scaleFactor;
+      const moveAmount = this.speed * this.scaleFactor;
       const newPos = this.entity.pos.add(direction.scale(moveAmount));
       
       // Check if new position is within combat zone boundaries
@@ -279,9 +288,9 @@ export class Slime {
     
     this.canAttack = false;
     
-    // Deal damage to player
+    // Deal damage to player (use scaled damage)
     if (player.combat) {
-      player.combat.takeDamage(COMBAT_CONFIG.slimeAttackDamage);
+      player.combat.takeDamage(this.attackDamage);
     }
     
     // Attack animation
@@ -373,22 +382,28 @@ export class EnemySpawner {
     // Remove dead enemies
     this.enemies = this.enemies.filter(e => e.entity.exists() && !e.isDead);
     
-    // Spawn new enemies
+    // Calculate difficulty scaling based on player score
+    const playerScore = this.player.combat ? this.player.combat.score : 0;
+    const difficultyMultiplier = 1 + (playerScore / 500); // Increases difficulty every 500 points
+    const scaledSpawnRate = Math.max(1, COMBAT_CONFIG.respawnTime / difficultyMultiplier); // Faster spawning
+    const scaledMaxEnemies = Math.min(15, Math.floor(COMBAT_CONFIG.maxSlimes * difficultyMultiplier)); // More enemies
+    
+    // Spawn new enemies with scaled difficulty
     this.spawnTimer += dt;
-    if (this.spawnTimer >= COMBAT_CONFIG.respawnTime && this.enemies.length < COMBAT_CONFIG.maxSlimes) {
-      this.spawnEnemy();
+    if (this.spawnTimer >= scaledSpawnRate && this.enemies.length < scaledMaxEnemies) {
+      this.spawnEnemy(playerScore);
       this.spawnTimer = 0;
     }
   }
 
-  spawnEnemy() {
+  spawnEnemy(playerScore = 0) {
     if (this.spawnZones.length === 0) return;
     
     // Pick random spawn zone
-    const zone = k.choose(this.spawnZones);
+    const zone = this.k.choose(this.spawnZones);
     
     // Spawn outside camera view
-    const camPos = k.camPos();
+    const camPos = this.k.camPos();
     const spawnOffset = 200;
     
     const side = Math.floor(Math.random() * 4);
@@ -396,32 +411,32 @@ export class EnemySpawner {
     
     switch (side) {
       case 0: // Top
-        spawnPos = k.vec2(
+        spawnPos = this.k.vec2(
           camPos.x + (Math.random() - 0.5) * 400,
           camPos.y - spawnOffset
         );
         break;
       case 1: // Right
-        spawnPos = k.vec2(
+        spawnPos = this.k.vec2(
           camPos.x + spawnOffset,
           camPos.y + (Math.random() - 0.5) * 400
         );
         break;
       case 2: // Bottom
-        spawnPos = k.vec2(
+        spawnPos = this.k.vec2(
           camPos.x + (Math.random() - 0.5) * 400,
           camPos.y + spawnOffset
         );
         break;
       case 3: // Left
-        spawnPos = k.vec2(
+        spawnPos = this.k.vec2(
           camPos.x - spawnOffset,
           camPos.y + (Math.random() - 0.5) * 400
         );
         break;
     }
     
-    const slime = new Slime(spawnPos, this.scaleFactor, this.combatZones);
+    const slime = new Slime(spawnPos, this.scaleFactor, this.combatZones, playerScore);
     slime.setTarget(this.player);
     if (this.onEnemyKilled) {
       slime.onEnemyKilled = this.onEnemyKilled;
