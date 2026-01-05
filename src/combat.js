@@ -16,7 +16,7 @@ export const COMBAT_CONFIG = {
   slimeAttackRange: 20,
   slimeAttackCooldown: 1.5,
   
-  respawnTime: 3.5, // seconds
+  respawnTime: 5, // seconds
   maxSlimes: 8,
 };
 
@@ -406,43 +406,83 @@ export class EnemySpawner {
   }
 
   spawnEnemy(playerScore = 0) {
-    if (this.spawnZones.length === 0) return;
+    if (this.spawnZones.length === 0 || !this.player) return;
     
     // Pick random spawn zone
     const zone = this.k.choose(this.spawnZones);
     
-    // Spawn outside camera view
-    const camPos = this.k.camPos();
-    const spawnOffset = 200;
+    // Get player position (use actual player pos, not camera)
+    const playerPos = this.player.pos;
     
-    const side = Math.floor(Math.random() * 4);
+    // Spawn much farther from player - at least 300 pixels away
+    const minDistance = 300 * this.scaleFactor;
+    const maxAttempts = 20;
     let spawnPos;
+    let attempts = 0;
     
-    switch (side) {
-      case 0: // Top
+    do {
+      // Spawn at a random edge of the combat zone or far from player
+      const side = Math.floor(Math.random() * 4);
+      const angle = Math.random() * Math.PI * 2; // Random angle
+      const distance = minDistance + Math.random() * 200 * this.scaleFactor; // 300-500 pixels away
+      
+      switch (side) {
+        case 0: // Top
+          spawnPos = this.k.vec2(
+            playerPos.x + (Math.random() - 0.5) * 600 * this.scaleFactor,
+            playerPos.y - distance
+          );
+          break;
+        case 1: // Right
+          spawnPos = this.k.vec2(
+            playerPos.x + distance,
+            playerPos.y + (Math.random() - 0.5) * 600 * this.scaleFactor
+          );
+          break;
+        case 2: // Bottom
+          spawnPos = this.k.vec2(
+            playerPos.x + (Math.random() - 0.5) * 600 * this.scaleFactor,
+            playerPos.y + distance
+          );
+          break;
+        case 3: // Left
+          spawnPos = this.k.vec2(
+            playerPos.x - distance,
+            playerPos.y + (Math.random() - 0.5) * 600 * this.scaleFactor
+          );
+          break;
+      }
+      
+      attempts++;
+    } while (attempts < maxAttempts && spawnPos.dist(playerPos) < minDistance);
+    
+    // Ensure spawn position is within combat zones if zones exist
+    if (this.combatZones.length > 0) {
+      const spawnX = spawnPos.x / this.scaleFactor;
+      const spawnY = spawnPos.y / this.scaleFactor;
+      let inZone = false;
+      
+      for (const combatZone of this.combatZones) {
+        if (spawnX >= combatZone.x && spawnX <= combatZone.x + combatZone.width &&
+            spawnY >= combatZone.y && spawnY <= combatZone.y + combatZone.height) {
+          inZone = true;
+          break;
+        }
+      }
+      
+      // If not in zone, find a position in the zone that's far from player
+      if (!inZone && this.combatZones.length > 0) {
+        const zone = this.k.choose(this.combatZones);
+        const zoneCenterX = (zone.x + zone.width / 2) * this.scaleFactor;
+        const zoneCenterY = (zone.y + zone.height / 2) * this.scaleFactor;
+        
+        // Spawn at edge of zone, far from player
+        const angle = Math.atan2(playerPos.y - zoneCenterY, playerPos.x - zoneCenterX) + Math.PI; // Opposite direction
         spawnPos = this.k.vec2(
-          camPos.x + (Math.random() - 0.5) * 400,
-          camPos.y - spawnOffset
+          zoneCenterX + Math.cos(angle) * Math.min(zone.width, zone.height) * this.scaleFactor * 0.4,
+          zoneCenterY + Math.sin(angle) * Math.min(zone.width, zone.height) * this.scaleFactor * 0.4
         );
-        break;
-      case 1: // Right
-        spawnPos = this.k.vec2(
-          camPos.x + spawnOffset,
-          camPos.y + (Math.random() - 0.5) * 400
-        );
-        break;
-      case 2: // Bottom
-        spawnPos = this.k.vec2(
-          camPos.x + (Math.random() - 0.5) * 400,
-          camPos.y + spawnOffset
-        );
-        break;
-      case 3: // Left
-        spawnPos = this.k.vec2(
-          camPos.x - spawnOffset,
-          camPos.y + (Math.random() - 0.5) * 400
-        );
-        break;
+      }
     }
     
     const slime = new Slime(spawnPos, this.scaleFactor, this.combatZones, playerScore);
