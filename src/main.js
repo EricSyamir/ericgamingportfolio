@@ -176,6 +176,9 @@ k.scene("main", async () => {
     setCamScale(k);
   });
   
+  // Start background music when scene loads
+  soundManager.playBackgroundMusic();
+  
   // Initialize enemy spawner (using scaleFactor for correct positioning)
   const enemySpawner = new EnemySpawner(k, scaleFactor, spawnZones, spawnZones);
   enemySpawner.setPlayer(player);
