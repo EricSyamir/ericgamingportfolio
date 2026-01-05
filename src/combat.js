@@ -16,7 +16,7 @@ export const COMBAT_CONFIG = {
   slimeAttackRange: 20,
   slimeAttackCooldown: 1.5,
   
-  respawnTime: 5, // seconds
+  respawnTime: 4, // seconds
   maxSlimes: 8,
 };
 
