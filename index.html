@@ -1766,8 +1766,28 @@
   </style>
 </head>
 <body>
+  <!-- Site Selection Modal -->
+  <div class="site-select-modal" id="siteSelectModal">
+    <div class="site-select-content">
+      <h1>🎮 WELCOME TO ERIC'S PORTFOLIO</h1>
+      <p>How would you like to view the site?</p>
+      <div class="site-select-buttons">
+        <button class="site-select-btn game" id="selectGameBtn">
+          🎮 GAME PORTFOLIO
+          <br>
+          <span style="font-size: 8px; opacity: 0.8;">Interactive 2D RPG Experience</span>
+        </button>
+        <button class="site-select-btn classic" id="selectClassicBtn">
+          📄 CLASSIC PORTFOLIO
+          <br>
+          <span style="font-size: 8px; opacity: 0.8;">Traditional Website View</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading Screen -->
-  <div class="loading-screen" id="loadingScreen">
+  <div class="loading-screen hidden" id="loadingScreen">
     <div class="loading-logo">ERIC SYAMIR<br>PORTFOLIO</div>
     <div class="loading-bar-container">
       <div class="loading-bar"></div>
