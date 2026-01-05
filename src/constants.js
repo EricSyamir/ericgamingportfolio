@@ -207,4 +207,6 @@ export const objectNames = {
   library: "📚 SKILLS",
   github: "🐙 GITHUB",
   exit: "🚪 CONTACT",
+  bench: "EDUCATION",
+  fountain: "SKILLS",
 };
