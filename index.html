@@ -1115,15 +1115,14 @@
       line-height: 1.8;
     }
 
-    .site-select-buttons {
+    .site-options {
       display: flex;
       flex-direction: column;
       gap: 15px;
     }
 
-    .site-select-btn {
+    .site-option-btn {
       font-family: var(--pixel-font);
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border: 3px solid var(--gold);
       border-radius: 10px;
       padding: 20px 30px;
@@ -1133,26 +1132,26 @@
       transition: all 0.3s;
       box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
       text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
 
-    .site-select-btn:hover {
+    .site-option-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
-      background: linear-gradient(135deg, var(--accent), var(--primary));
     }
 
-    .site-select-btn:active {
+    .site-option-btn:active {
       transform: translateY(2px);
       box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
     }
 
-    .site-select-btn.classic {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-    }
-
-    .site-select-btn.game {
+    .site-option-btn.primary {
       background: linear-gradient(135deg, var(--gold), #ffed4e);
       color: #000;
+    }
+
+    .site-option-btn.secondary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
     /* Loading Screen */
@@ -1764,23 +1763,23 @@
       }
     }
   </style>
-</head>
-<body>
+  </head>
+  <body>
   <!-- Site Selection Modal -->
-  <div class="site-select-modal" id="siteSelectModal">
+  <div id="siteSelectModal" class="site-select-modal">
     <div class="site-select-content">
       <h1>🎮 WELCOME TO ERIC'S PORTFOLIO</h1>
       <p>How would you like to view the site?</p>
-      <div class="site-select-buttons">
-        <button class="site-select-btn game" id="selectGameBtn">
-          🎮 GAME PORTFOLIO
+      <div class="site-options">
+        <button class="site-option-btn primary" id="gamePortfolioBtn">
+          🎮 INTERACTIVE PORTFOLIO
           <br>
-          <span style="font-size: 8px; opacity: 0.8;">Interactive 2D RPG Experience</span>
+          <span style="font-size: 8px; opacity: 0.8;">2D RPG Game Experience</span>
         </button>
-        <button class="site-select-btn classic" id="selectClassicBtn">
-          📄 CLASSIC PORTFOLIO
+        <button class="site-option-btn secondary" id="classicPortfolioBtn">
+          📄 TRADITIONAL PORTFOLIO
           <br>
-          <span style="font-size: 8px; opacity: 0.8;">Traditional Website View</span>
+          <span style="font-size: 8px; opacity: 0.8;">Classic Website View</span>
         </button>
       </div>
     </div>
@@ -1899,7 +1898,7 @@
       <nav class="header-links">
         <a href="https://github.com/ericsyamir" target="_blank" class="header-link">GITHUB</a>
         <a href="https://www.linkedin.com/in/muhammad-eric-syamir-bin-shamsurizal-463723315" target="_blank" class="header-link">LINKEDIN</a>
-        <a href="https://ericsyamir.great-site.net" target="_blank" class="header-link">CLASSIC</a>
+        <a href="Portfolio/index.html" class="header-link">CLASSIC</a>
         <button class="header-link help-btn" id="helpBtn">?</button>
         <a href="https://wa.me/60132543999" target="_blank" class="header-link primary">CONTACT</a>
       </nav>
@@ -2011,20 +2010,60 @@
       particlesContainer.appendChild(particle);
     }
 
-    // Loading screen then show tutorial (only if game portfolio was selected)
-    window.addEventListener('load', () => {
-      const siteChoice = localStorage.getItem('siteChoice');
-      if (siteChoice === 'game' || !siteChoice) {
+    // Site Selection Modal Logic
+    const siteSelectModal = document.getElementById('siteSelectModal');
+    const gamePortfolioBtn = document.getElementById('gamePortfolioBtn');
+    const classicPortfolioBtn = document.getElementById('classicPortfolioBtn');
+    const loadingScreen = document.getElementById('loadingScreen');
+
+    // Check if user has already made a choice
+    const siteChoice = localStorage.getItem('siteChoice');
+    
+    if (siteChoice === 'classic') {
+      // Redirect to classic portfolio
+      window.location.href = 'https://ericsyamir.great-site.net';
+    } else if (siteChoice === 'game') {
+      // Hide modal and show loading screen
+      siteSelectModal.classList.add('hidden');
+      loadingScreen.classList.remove('hidden');
+    } else {
+      // First visit - show selection modal
+      siteSelectModal.classList.remove('hidden');
+    }
+
+    // Game Portfolio Button - Show loading screen and start game
+    if (gamePortfolioBtn) {
+      gamePortfolioBtn.addEventListener('click', () => {
+        localStorage.setItem('siteChoice', 'game');
+        siteSelectModal.classList.add('hidden');
+        loadingScreen.classList.remove('hidden');
+        
+        // After loading, show tutorial
         setTimeout(() => {
-          const loadingScreen = document.getElementById('loadingScreen');
-          if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
-            loadingScreen.classList.add('hidden');
-            // Show tutorial after loading
-            document.getElementById('tutorialModal').classList.remove('hidden');
-          }
+          loadingScreen.classList.add('hidden');
+          document.getElementById('tutorialModal').classList.remove('hidden');
         }, 2000);
-      }
-    });
+      });
+    }
+
+    // Classic Portfolio Button - Redirect to classic site
+    if (classicPortfolioBtn) {
+      classicPortfolioBtn.addEventListener('click', () => {
+        localStorage.setItem('siteChoice', 'classic');
+        window.location.href = 'https://ericsyamir.great-site.net';
+      });
+    }
+
+    // Loading screen then show tutorial (only if game was already selected)
+    if (siteChoice === 'game') {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          loadingScreen.classList.add('hidden');
+          // Show tutorial after loading
+          document.getElementById('tutorialModal').classList.remove('hidden');
+        }, 2000);
+      });
+    }
 
     // Tutorial pagination
     let currentTutorialPage = 0;
