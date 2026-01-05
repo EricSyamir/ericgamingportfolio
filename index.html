@@ -2011,13 +2011,19 @@
       particlesContainer.appendChild(particle);
     }
 
-    // Loading screen then show tutorial
+    // Loading screen then show tutorial (only if game portfolio was selected)
     window.addEventListener('load', () => {
-      setTimeout(() => {
-        document.getElementById('loadingScreen').classList.add('hidden');
-        // Show tutorial after loading
-        document.getElementById('tutorialModal').classList.remove('hidden');
-      }, 2000);
+      const siteChoice = localStorage.getItem('siteChoice');
+      if (siteChoice === 'game' || !siteChoice) {
+        setTimeout(() => {
+          const loadingScreen = document.getElementById('loadingScreen');
+          if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+            loadingScreen.classList.add('hidden');
+            // Show tutorial after loading
+            document.getElementById('tutorialModal').classList.remove('hidden');
+          }
+        }, 2000);
+      }
     });
 
     // Tutorial pagination
