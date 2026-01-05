@@ -112,7 +112,7 @@ class SoundManager {
     // Combat music
     this.combatMusic = new Audio("./Last Surprise -Scramble-.mp3");
     this.combatMusic.loop = true;
-    this.combatMusic.volume = 0.5;
+    this.combatMusic.volume = 0.3; // Reduced volume for combat music
     this.combatMusic.preload = "auto";
 
     // Handle errors
